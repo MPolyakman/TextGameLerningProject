@@ -1,5 +1,4 @@
 from PySide6.QtWidgets import QApplication, QWidget, QPushButton
-from ui import GameUI
 
 import sys
 
