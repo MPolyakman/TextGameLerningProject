@@ -92,6 +92,5 @@ game = QApplication([])
 window = MainWindow()
 window.show()
 
-
 game.exec()
 print("Завершено успешно!")

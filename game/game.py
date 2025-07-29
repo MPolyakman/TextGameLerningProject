@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
 
@@ -25,6 +27,23 @@ class Room:
             return True
         return False
 
+class Player:
+    def __init__(self, position):
+        self.current_room = position
+        self.inventory = {} # {"name': item}
+
+    def set_position(self, room):
+        self.current_room = room
+    
+    def move(self, direction):
+        direction = direction.lower()
+        if direction in directions and getattr(self.current_room, direction, None) != None:
+            self.set_position(getattr( self.current_room, direction))
+            return True
+        print('no way')
+        return False
+
+
 class Graph:
     def __init__(self):
         self.rooms = {}
@@ -42,35 +61,32 @@ class Graph:
             return True
         return False
     
-class Item:
-    def __init__(self, name, description):
+class ConnectedObject:
+    @abstractmethod
+    def connection(player: Player):
+        pass
+    
+class Item(ConnectedObject):
+    def __init__(self, name: str, description: str, type: bool):
         self.name = name
         self.description = description
+        self.type = type
 
-class Door:
+    def connection(self, player: Player):
+        if self.name in player.current_room.items:
+            player.inventory[self.name] = player.current_room.items.pop(self.name)
+            return True
+        return False
+        
+    
+
+class Door(ConnectedObject):
     def __ini__(self, locked = True, key_name = None, description = ''):
         self.locked = locked
         self.key_name = key_name
         self.description = description
 
-class Player:
-    def __init__(self, position):
-        self.current_room = position
-        self.inventory = {} # {"name': item}
+    def connection(self, player: Player):
+        self.locked = False
 
-    def set_position(self, room):
-        self.current_room = room
     
-    def move(self, direction):
-        direction = direction.lower()
-        if direction in directions and getattr(self.current_room, direction, None) != None:
-            self.set_position(getattr( self.current_room, direction))
-            return True
-        print('no way')
-        return False
-    
-    def take_an_item(self, item_name):
-        if item_name in self.current_room.items:
-            self.inventory[item_name] = self.current_room.items.pop(item_name)
-            return True
-        return False
