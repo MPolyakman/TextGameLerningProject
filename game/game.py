@@ -61,32 +61,30 @@ class Graph:
             return True
         return False
     
-class ConnectedObject(ABC):
+class UseObject(ABC):
     @abstractmethod
-    def connection(self, player: Player):
+    def use(self, player: Player):
         pass
 
-class Item(ConnectedObject):
+class Item(UseObject):
     def __init__(self, name: str, description: str, type: bool):
         self.name = name
         self.description = description
         self.type = type
 
-    def connection(self, player: Player):
+    def use(self, player: Player):
         if self.name in player.current_room.items:
             player.inventory[self.name] = player.current_room.items.pop(self.name)
             return True
-        return False
-        
+        return False 
     
-
-class Door(ConnectedObject):
+class Door(UseObject):
     def __init__(self, locked = True, key_name = None, description = ''):
         self.locked = locked
         self.key_name = key_name
         self.description = description
 
-    def connection(self, player: Player):
+    def use(self, player: Player):
         self.locked = False
 
     
