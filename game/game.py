@@ -63,9 +63,9 @@ class Graph:
     
 class ConnectedObject:
     @abstractmethod
-    def connection(player: Player):
+    def connection(self, player: Player):
         pass
-    
+
 class Item(ConnectedObject):
     def __init__(self, name: str, description: str, type: bool):
         self.name = name
