@@ -66,6 +66,9 @@ class UseObject(ABC):
     def use(self, player: Player):
         pass
 
+    def get_description(self) -> str:
+        return getattr(self, "description", "No comments lol")
+
 class Item(UseObject):
     def __init__(self, name: str, description: str, type: bool):
         self.name = name
