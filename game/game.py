@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -61,7 +61,7 @@ class Graph:
             return True
         return False
     
-class ConnectedObject:
+class ConnectedObject(ABC):
     @abstractmethod
     def connection(self, player: Player):
         pass
@@ -81,7 +81,7 @@ class Item(ConnectedObject):
     
 
 class Door(ConnectedObject):
-    def __ini__(self, locked = True, key_name = None, description = ''):
+    def __init__(self, locked = True, key_name = None, description = ''):
         self.locked = locked
         self.key_name = key_name
         self.description = description
