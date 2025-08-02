@@ -1,5 +1,5 @@
 import ollama
-from aistuff import aifunc
+import aistuff.aifunc
 
 rules = '''
 Привет, ты являешься игровым мастером в текстовой игре жанра rogulike -
@@ -19,6 +19,6 @@ response = ollama.chat(
     ]
 )
 ans = response['message']['content']
-ans_fix=aifunc.fixmes(ans)
+ans_fix=aistuff.aifunc.fixmes(ans)
 print(ans)
 print(ans_fix)
