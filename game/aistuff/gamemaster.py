@@ -1,5 +1,5 @@
 import ollama
-from aifunс import fixmes
+from aifunс import fixmes, to_dict_prompt
 
 rules = '''
 Привет, ты являешься игровым мастером в текстовой игре жанра rogulike -
@@ -22,6 +22,18 @@ def descr(obj):
     ])
     return fixmes(description['message']['content'])
 
+def condition(mes: str, obj):
+    prompt = f'''Исходя из этого: "{mes}" - предскажи как поменяется состояние объекта
+      учитывая его нынешние характеристики. Шаблон: {to_dict_prompt(obj)},
+      ответ пиши в точности исходя из приведенного шаблона,
+     не меняй характеристики которые задают объект сам по себе'''
+    cond = ollama.chat(
+    model='llama3:instruct',
+    messages=[
+        {'role': 'system', 'content': rules},
+        {'role': 'user', 'content': prompt}
+    ])
+    return cond
 
 response = ollama.chat(
     model='llama3:instruct',
