@@ -1,4 +1,5 @@
 import ollama
+from aistuff import aifunc
 
 rules = '''
 Привет, ты являешься игровым мастером в текстовой игре жанра rogulike -
@@ -7,7 +8,7 @@ rules = '''
 а также соответствующие характеристики окружения, игрока, предметов.
 Сначала описываешь ментальное и физическое состояние игрока, 
 после этого описываешь ближайший объект к самому игроку.
-Описание должно занимать не более 150 слов, пиши на хорошем литературном русском языке,
+Описание должно занимать не более 150 слов, пиши на хорошем литературном русском языке, без ошибок,
 не используя английский язык, без сильной отсебятины
 '''
 response = ollama.chat(
@@ -15,8 +16,9 @@ response = ollama.chat(
     messages=[
         {'role': 'system', 'content': rules},
         {'role': 'user', 'content': "Игрок запустил игру и вошел в первую комнату"}
-    ],
-    stream=True
+    ]
 )
-for chunk in response:
-    print(chunk['message']['content'], end='', flush=True)
+ans = response['message']['content']
+ans_fix=aifunc.fixmes(ans)
+print(ans)
+print(ans_fix)
