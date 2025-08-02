@@ -15,7 +15,7 @@ class NPC(Creature):
         ans = btw['message']['content']
         messages.append({'role': 'system', 'content': ans})
         messages.append({'role': 'user', 'content': "Вкратце перескажи всё то что, говорил этот NPC и всё что с ним происходило за исключением исходного описания"})
-        self.history = ollama.chat(model='llama3:instruct', messages=messages)
+        self.history = ollama.chat(model='llama3:instruct', messages=messages)['message']['content']
         return ans
 
 
