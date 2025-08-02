@@ -1,5 +1,6 @@
 from creatures import Creature
 import ollama
+from aistuff.aifunс import fixmes
 
 
 class NPC(Creature):
@@ -13,6 +14,7 @@ class NPC(Creature):
         messages.append({'role': 'user', 'content': self.history})
         btw = ollama.chat(model='llama3:instruct', messages=messages)
         ans = btw['message']['content']
+        ans = fixmes(ans)
         messages.append({'role': 'system', 'content': ans})
         messages.append({'role': 'user', 'content': "Вкратце перескажи всё то что, говорил этот NPC и всё что с ним происходило за исключением исходного описания"})
         self.history = ollama.chat(model='llama3:instruct', messages=messages)['message']['content']
