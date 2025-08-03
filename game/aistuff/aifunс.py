@@ -1,11 +1,11 @@
 import ollama
 import inspect 
 
-def fixmes(mes: str) -> str:
+def fix_mes(mes: str) -> str:
     red_mes = ollama.chat(
     model='llama3:instruct',
     messages=[
-        {'role': 'user', 'content': f'Исправь ошибки, чтобы звучало нормально и больше ничего не пиши: {mes}'}
+        {'role': 'user', 'content': f'Ты знаешь русский язык на уровне носителя, исправь ошибки, чтобы оно звучало красиво и не теряло смысл: {mes}'}
     ])
     return red_mes['message']['content']
 
@@ -13,4 +13,25 @@ def to_dict_prompt(self):
     smth = self.__dict__
     prompt = 'Это характеристики объекта: \n'+'\n'.join(f'{k}={v}' for k, v in smth.items())
     return prompt
+
+def reduce_mes(mes: str) -> str:
+    red_mes = ollama.chat(
+    model='llama3:instruct',
+    messages=[
+        {'role': 'user', 'content': f'''Ты профессиональный русскоязычный копирайтер,
+        переформулируй всё сообщение так, чтобы основной посыл не потерялся,
+         но общий объём значительно уменьшился: {mes}'''}
+    ])
+    return red_mes['message']['content']
+
+def str_to_prompt(mes: str):
+    return {'role': 'user', 'content': mes}
+
+def print_var_name(var):
+    frame = inspect.currentframe()
+    if frame is not None and frame.f_back is not None:
+        for name, val in frame.f_back.f_locals.items():
+            if val is var:
+                print(name)
+
     

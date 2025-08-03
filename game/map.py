@@ -48,6 +48,7 @@ class Room:
         for direction in directions: # Собирает описание с соседних комнат/тайлов если между ними нету препятсвие или есть другая видимость (для больших комнат)
             if getattr(self, direction).next_room != None and (getattr(self, direction).obstacle == None or getattr(self, direction).visible_through == True):
                 description += getattr(self, direction).next_room.__str__(distance + 1)
+        return description
     
 class Graph:
     def __init__(self):
@@ -76,6 +77,7 @@ class Graph:
         shuffle(rooms)
         n = len(rooms) // 3
         main_root = []
+        starting_room = rooms[0]
         for i in range(n):
             room = rooms[i]
             if room.name == "starting_room":
