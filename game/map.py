@@ -53,6 +53,7 @@ class Graph:
     def __init__(self):
         self.rooms = {}
         self.coordinates = {}
+        self.room_coordinates = {}
     
     def add_room(self, room: Room):
         self.rooms[room.name] = room
@@ -70,38 +71,65 @@ class Graph:
         return False
     
     def generate_graph(self, rooms: list):
-        for room in rooms:
-            self.add_room(room)
-        
         shuffle(rooms)
-        n = len(rooms) // 3
-        main_root = []
-        for i in range(n):
-            room = rooms[i]
-            if room.name == "starting_room":
-                starting_room = room
-                rooms.remove(room)
-                continue
-            main_root.append(room)
-            rooms.remove(room)
-
-        prev_node = starting_room
-        node = starting_room
-        for room in main_root:
-            for direction in directions:
-                if random.random()  <= 0.6 and getattr(node, direction).next_room == None:
-                    self.add_edge(node, direction, room)
-                    break
-            else:
-                for direction in directions:
-                    if getattr(prev_node, direction).next_room == None:
-                        self.add_edge(prev_node, direction, room)
-                        break
-            prev_node = node
-            node = room
-
+        starting_room = [r for r in rooms if r.name == "starting_room"][0]
+        self.coordinates[(0,0)] = starting_room
+        self.room_coordinates[starting_room] = (0,0)
+        rooms.remove(self.rooms["starting_room"])
+        self.add_room(starting_room)
+        occupied_coords = set(self.room_coordinates.values())
+        x, y = 0, 0
+        
         while rooms:
-            self.add_edge(choice(rooms), choice(directions), choice(main_root))
+            r = choice(rooms)
+            d = choice(directions)
+            node = choice(list(self.rooms.values()))
+            x, y = (self.room_coordinates[node])
+            match d:
+                case "north":
+                    x, y = x, y + 1
+                case "east":
+                    x, y = x + 1, y
+                case "south":
+                    x, y = x, y - 1
+                case "west":
+                    x, y = x - 1, y
+            if (x, y) not in occupied_coords:
+                if self.add_edge(r, d, node):
+                    rooms.remove(r)
+                    self.add_room(r)
+                    self.room_coordinates[r] = (x, y )
+                    self.coordinates[(x, y )] = r
+                        
+
+
+        
+        # n = len(rooms) // 3
+        # main_root = []
+        # for i in range(n):
+        #     room = rooms[i]
+        #     if room.name == "starting_room":
+        #         starting_room = room
+        #         rooms.remove(room)
+        #         continue
+        #     main_root.append(room)
+        #     rooms.remove(room)
+
+        # prev_node = starting_room
+        # node = starting_room
+        # for room in main_root:
+        #     for direction in directions:
+        #         if random.random()  <= 0.6 and getattr(node, direction).next_room == None:
+        #             self.add_edge(node, direction, room)
+        #             break
+        #     else:
+        #         for direction in directions:
+        #             if getattr(prev_node, direction).next_room == None:
+        #                 self.add_edge(prev_node, direction, room)
+        #                 break
+        #     prev_node = node
+        #     node = room
+
 
     def calculate_coordinates(self):
 
@@ -121,10 +149,10 @@ class Graph:
             for direction in directions:
                 next_room = getattr(current, direction).next_room
                 if next_room not in calculated:
-                    if direction is "north": self.coordinates[x, y + 1] = next_room
-                    elif direction is "east": self.coordinates[x + 1, y ] = next_room
-                    elif direction is "south": self.coordinates[x , y - 1 ] = next_room
-                    elif direction is "west": self.coordinates[x - 1, y] = next_room
+                    if direction == "north": self.coordinates[x, y + 1] = next_room
+                    elif direction == "east": self.coordinates[x + 1, y ] = next_room
+                    elif direction == "south": self.coordinates[x , y - 1 ] = next_room
+                    elif direction == "west": self.coordinates[x - 1, y] = next_room
                     q.append(next_room)
                     calculated.add(next_room)
 
