@@ -1,10 +1,10 @@
-from map import Room
+# from map import Room, Path, Graph
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
 
 class Creature:
-    def __init__(self, name, position: Room, max_health: int):
+    def __init__(self, name, position, max_health: int):
         self.name = name
         self.current_room = position
         self.inventory = {} # {"name': item}

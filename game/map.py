@@ -1,8 +1,7 @@
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
 
-from items.UseObjects import Door
-import random
+# from items.UseObjects import Door
 from random import shuffle, choice
 from collections import deque
 
@@ -25,7 +24,8 @@ class Room:
                  north_room = None, north_obstacle = None,
                  east_room  = None, east_obstacle = None,
                  south_room  = None, south_obstacle = None,
-                 west_room  = None, west_obstacle = None
+                 west_room  = None, west_obstacle = None,
+                 description = ''
                 ):
         
         self.name = name              
@@ -76,8 +76,8 @@ class Graph:
         starting_room = [r for r in rooms if r.name == "starting_room"][0]
         self.coordinates[(0,0)] = starting_room
         self.room_coordinates[starting_room] = (0,0)
-        rooms.remove(self.rooms["starting_room"])
         self.add_room(starting_room)
+        rooms.remove(self.rooms["starting_room"])
         occupied_coords = set(self.room_coordinates.values())
         x, y = 0, 0
         
@@ -142,10 +142,12 @@ class Graph:
         self.coordinates[(0,0)] = starting_room
 
         #BFS
-        calculated = set(starting_room)
-        q = deque(starting_room)
+        calculated = set()
+        calculated.add(starting_room)
+        q = deque()
+        q.append(starting_room)
         x, y = 0, 0
-        while q:
+        while q :
             current = q.popleft()
             for direction in directions:
                 next_room = getattr(current, direction).next_room
@@ -158,4 +160,17 @@ class Graph:
                     calculated.add(next_room)
 
     def serialize(self):
-        pass
+        serialized_rooms = []
+        for room_name, room_obj in self.rooms.items():
+            room_data = room_obj.__dict__.copy()
+            room_data['name'] = room_name
+            if room_obj in self.room_coordinates:
+                x, y = self.room_coordinates[room_obj]
+                room_data['x'] = x
+                room_data['y'] = y
+            else:
+                room_data['x'] = None
+                room_data['y'] = None
+            
+            serialized_rooms.append(room_data)
+        return {'Graph': serialized_rooms}

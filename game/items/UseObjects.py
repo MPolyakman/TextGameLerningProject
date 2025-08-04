@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from game.Characters.player import  Player
+from Characters.player import  Player
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']

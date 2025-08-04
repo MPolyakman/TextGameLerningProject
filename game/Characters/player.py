@@ -1,4 +1,4 @@
-from NPC.creatures import Creature
+from .NPC.creatures import Creature
 
 class Player(Creature):
     def __init__(self, name, position, max_health = 100):
