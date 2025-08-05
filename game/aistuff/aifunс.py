@@ -34,4 +34,26 @@ def print_var_name(var):
             if val is var:
                 print(name)
 
+def condition_str_to_dict (self, prompt: str):
+    lines = prompt.strip().split('\n')
+    if not lines[0].startswith('Это характеристики объекта:'):
+        raise ValueError('Неверный формат строки')
+    for line in lines[1:]:
+        if '=' in line:
+            key, value = line.split('=', 1)
+            key = key.strip()
+            value = value.strip()
+            if value.isdigit():
+                value = int(value)
+            elif value.lower() in ['true', 'false']:
+                value = value.lower() == 'true'
+            else:
+                try:
+                    value = float(value)
+                except ValueError:
+                    pass 
+            setattr(self, key, value)    
+
+
+
     
