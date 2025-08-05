@@ -77,8 +77,9 @@ class Graph:
         self.coordinates[(0,0)] = starting_room
         self.room_coordinates[starting_room] = (0,0)
         self.add_room(starting_room)
-        rooms.remove(self.rooms["starting_room"])
-        occupied_coords = set(self.room_coordinates.values())
+        rooms.remove(starting_room)
+        occupied_coords = set()
+        occupied_coords.add((0,0))
         x, y = 0, 0
         
         while rooms:
@@ -99,12 +100,9 @@ class Graph:
                 if self.add_edge(r, d, node):
                     rooms.remove(r)
                     self.add_room(r)
-                    self.room_coordinates[r] = (x, y )
-                    self.coordinates[(x, y )] = r
+                    self.room_coordinates[r] = (x, y)
+                    self.coordinates[(x, y)] = r
                         
-
-
-        
         # n = len(rooms) // 3
         # main_root = []
         # for i in range(n):

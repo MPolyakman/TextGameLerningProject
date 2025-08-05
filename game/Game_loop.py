@@ -31,10 +31,10 @@ class Game:
             min_y = min(min_y, coords[1])
         i = 0
         previous_line = []
-        for y in range(max_y, min_y):
+        for y in range(max_y, min_y - 1, -1):
             if i % 2 == 0:
-                for x in range(min_x, max_x):
-                    if self.graph.coordinates[(x,y)] != None:
+                for x in range(min_x, max_x + 1, 1):
+                    if (x, y) in self.graph.coordinates.keys():
                         map += "▇"
                         if self.graph.coordinates[(x,y)].east.next_room != None:
                             map += "-"
@@ -50,12 +50,14 @@ class Game:
                         map += "| "
                     else:
                         map += "  "
+                previous_line.clear()
             map += "\n"
+            i += 1
         return map
     
     def show_map(self):
 
-        self.graph.calculate_coordinates()
+        # self.graph.calculate_coordinates()
         print(self.draw_map())
 
 """ ИИ сгенеированный слоп для отладки !!!!!"""
@@ -74,10 +76,7 @@ room10 = Room("Throne Room", description="An ornate throne on a raised dais.")
 rooms = [room1, room2, room3, room4, room5, room6,room7, room8, room9, room10]
 
 dungeon = Graph()
-
-
 dungeon.generate_graph(rooms)
-
 test_game = Game("Pl", dungeon, room1)
 test_game.show_map()
    
