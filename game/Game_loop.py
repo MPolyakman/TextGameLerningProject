@@ -23,36 +23,30 @@ class Game:
 
     def draw_map(self):
         map = ""
-        max_y = max_x = min_y = min_x = 0
-        for coords in self.graph.coordinates.keys():
-            max_x = max(max_x, coords[0])
-            max_y = max(max_y, coords[1])
-            min_x = min(min_x, coords[0])
-            min_y = min(min_y, coords[1])
-        i = 0
+        x_values, y_values = zip(*self.graph.coordinates.keys())
+        min_x, max_x = min(x_values), max(x_values)
+        min_y, max_y = min(y_values), max(y_values)
         previous_line = []
-        for y in range(max_y, min_y - 1, -1):
-            if i % 2 == 0:
-                for x in range(min_x, max_x + 1, 1):
-                    if (x, y) in self.graph.coordinates.keys():
-                        map += "▇"
-                        if self.graph.coordinates[(x,y)].east.next_room != None:
-                            map += "-"
-                        else:
-                            map += " "
-                        if self.graph.coordinates[(x,y)].south.next_room != None:
-                            previous_line.append(x)
+        for y in range(max_y, min_y-1, -1):
+            for x in range(min_x, max_x + 1):
+                if (x, y) in self.graph.coordinates.keys():
+                    map += "▇"
+                    if self.graph.coordinates[(x,y)].east.next_room != None:
+                        map += "---"
                     else:
-                        map += "  "
-            else:
-                for x in range(min_x, max_x):
-                    if x in previous_line:
-                        map += "| "
-                    else:
-                        map += "  "
-                previous_line.clear()
+                        map += "   "
+                    if self.graph.coordinates[(x,y)].south.next_room != None:
+                        previous_line.append(x)
+                else:
+                    map += "    "
+            map += '\n'
+            for x in range(min_x, max_x + 1):
+                if x in previous_line:
+                    map += "|   "
+                else:
+                    map += "    "
+            previous_line.clear()
             map += "\n"
-            i += 1
         return map
     
     def show_map(self):
