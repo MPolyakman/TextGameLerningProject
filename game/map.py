@@ -97,7 +97,7 @@ class Graph:
                 case "west":
                     x, y = x - 1, y
             if (x, y) not in occupied_coords:
-                if self.add_edge(r, d, node):
+                if self.add_edge(node, d, r):
                     rooms.remove(r)
                     self.add_room(r)
                     self.room_coordinates[r] = (x, y)
