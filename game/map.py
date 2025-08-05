@@ -43,12 +43,12 @@ class Room:
             setattr(self, direction, path)
             return True
         return False
-    def __str__(self, distance = 0):
+    def __str__(self, max_distance = 4, distance = 0):
         description = self.description
         for direction in directions: # Собирает описание с соседних комнат/тайлов если между ними нету препятсвие или есть другая видимость (для больших комнат)
-            if getattr(self, direction).next_room != None and (getattr(self, direction).obstacle == None or getattr(self, direction).visible_through == True):
+            if getattr(self, direction).next_room != None and (getattr(self, direction).obstacle == None or getattr(self, direction).visible_through == True) and distance <= max_distance:
                 description += getattr(self, direction).next_room.__str__(distance + 1)
-        return description
+        return self.name + description
     
 class Graph:
     def __init__(self):
@@ -71,37 +71,49 @@ class Graph:
             return True
         return False
     
+
     def generate_graph(self, rooms: list):
         shuffle(rooms)
         starting_room = [r for r in rooms if r.name == "starting_room"][0]
-        self.coordinates[(0,0)] = starting_room
-        self.room_coordinates[starting_room] = (0,0)
+        self.coordinates[(0, 0)] = starting_room
+        self.room_coordinates[starting_room] = (0, 0)
         self.add_room(starting_room)
         rooms.remove(starting_room)
-        occupied_coords = set()
-        occupied_coords.add((0,0))
-        x, y = 0, 0
-        
+
+        deltas = {
+            "north": (0, 1),
+            "east": (1, 0),
+            "south": (0, -1),
+            "west": (-1, 0)
+        }
+
         while rooms:
-            r = choice(rooms)
-            d = choice(directions)
-            node = choice(list(self.rooms.values()))
-            x, y = (self.room_coordinates[node])
-            match d:
-                case "north":
-                    x, y = x, y + 1
-                case "east":
-                    x, y = x + 1, y
-                case "south":
-                    x, y = x, y - 1
-                case "west":
-                    x, y = x - 1, y
-            if (x, y) not in occupied_coords:
-                if self.add_edge(node, d, r):
-                    rooms.remove(r)
-                    self.add_room(r)
-                    self.room_coordinates[r] = (x, y)
-                    self.coordinates[(x, y)] = r
+            placed = False
+            for node in list(self.rooms.values()):
+                x0, y0 = self.room_coordinates[node]
+                shuffle(directions)
+                for d in directions:
+                    dx, dy = deltas[d]
+                    x1, y1 = x0 + dx, y0 + dy
+
+                    if (x1, y1) in self.coordinates:
+                        continue
+
+                    if not rooms:
+                        break
+
+                    next_room = rooms[-1] 
+
+                    if self.add_edge(node, d, next_room):
+                        self.coordinates[(x1, y1)] = next_room
+                        self.room_coordinates[next_room] = (x1, y1)
+                        self.add_room(next_room)
+                        rooms.pop() 
+                        placed = True
+                        break
+
+                if placed:
+                    break 
                         
         # n = len(rooms) // 3
         # main_root = []
