@@ -88,32 +88,26 @@ class Graph:
         }
 
         while rooms:
-            placed = False
-            for node in list(self.rooms.values()):
-                x0, y0 = self.room_coordinates[node]
-                shuffle(directions)
-                for d in directions:
-                    dx, dy = deltas[d]
-                    x1, y1 = x0 + dx, y0 + dy
-
-                    if (x1, y1) in self.coordinates:
-                        continue
-
-                    if not rooms:
-                        break
-
-                    next_room = rooms[-1] 
-
-                    if self.add_edge(node, d, next_room):
-                        self.coordinates[(x1, y1)] = next_room
-                        self.room_coordinates[next_room] = (x1, y1)
-                        self.add_room(next_room)
-                        rooms.pop() 
-                        placed = True
-                        break
-
-                if placed:
-                    break 
+            r = choice(rooms)
+            d = choice(directions)
+            node = choice(list(self.rooms.values()))
+            x, y = (self.room_coordinates[node])
+            match d:
+                case "north":
+                    x, y = x, y + 1
+                case "east":
+                    x, y = x + 1, y
+                case "south":
+                    x, y = x, y - 1
+                case "west":
+                    x, y = x - 1, y
+            if (x, y) not in occupied_coords:
+                if self.add_edge(node, d, r):
+                    rooms.remove(r)
+                    self.add_room(r)
+                    occupied_coords.add((x,y))
+                    self.room_coordinates[r] = (x, y)
+                    self.coordinates[(x, y)] = r
                         
         # n = len(rooms) // 3
         # main_root = []
