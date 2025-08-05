@@ -79,13 +79,9 @@ class Graph:
         self.room_coordinates[starting_room] = (0, 0)
         self.add_room(starting_room)
         rooms.remove(starting_room)
-
-        deltas = {
-            "north": (0, 1),
-            "east": (1, 0),
-            "south": (0, -1),
-            "west": (-1, 0)
-        }
+        occupied_coords = set()
+        occupied_coords.add((0,0))
+        x, y = 0, 0
 
         while rooms:
             r = choice(rooms)
