@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
-from Characters.player import  Player
 
 class UseObject(ABC):
     @abstractmethod
-    def use(self, player: Player) -> str: #каждый use дает комментарий по произошедшему
+    def use(self, player) -> str:
         pass
 
     def __str__(self) -> str:
@@ -20,9 +19,6 @@ class Door(UseObject):
         self.locked = locked
         self.key_name = key_name
         self.description = description
-
-    def use(self, player: Player):
-        pass
         
         # if self.key_name in player.inventory.keys():
         #     self.locked = False

@@ -21,9 +21,10 @@ class EventDispatcher:
             self.listeners[event_type] = []
         self.listeners[event_type].append(listener)
 
-    def emit(self, event_type, data = None):
+    def emit(self, event):
+        event_type = type(event)
         for listener in self.listeners.get(event_type, []):
-            listener(data)
+            listener(event)
 
 class ItemSystem:
     def __init__(self, event_dispatcher):

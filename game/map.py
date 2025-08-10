@@ -49,7 +49,7 @@ class Room:
             if getattr(self, direction).next_room != None and (getattr(self, direction).obstacle == None or getattr(self, direction).visible_through == True) and distance <= max_distance:
                 description += getattr(self, direction).next_room.__str__(distance + 1)
         return self.name + description
-    
+ 
 class Graph:
     def __init__(self):
         self.rooms = {}
