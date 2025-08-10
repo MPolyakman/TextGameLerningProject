@@ -10,7 +10,14 @@ opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
 
 class Game:
-    def __init__(self, event_dispatcher, character_system,  moving_system, action_system, item_system, map_system, player_name = "Default name"):
+    def __init__(self,
+                 event_dispatcher: EventDispatcher,
+                 character_system: CharactersSystem,
+                 moving_system: MovingSystem,
+                 action_system: ActionSystem,
+                 item_system: ItemSystem,
+                 map_system: MapSystem,
+                 player_name = "Default name"):
 
         self.event_dispatcher = event_dispatcher
 
@@ -21,11 +28,10 @@ class Game:
         self.map_system = map_system
 
         position = self.map_system.map.rooms['starting_room']
-        self.player = Player(player_name, position)
-        self.characters = {}
+        self.player = Player(player_name, position = position)
 
-    def handle_turn(self, event): # все дейтсвия игрока определяем как (action__object)
-        action, object = event.split(" ")
+    def handle_turn(self, player_action): 
+        action, object = player_action.split(" ")
         match action:
             case "move":
                 event = MoveEvent(char_sys.player, object)
@@ -65,8 +71,6 @@ class Game:
         return map
     
     def show_map(self):
-
-        # self.graph.calculate_coordinates()
         print(self.draw_map())
 
     def start_game(self):
@@ -98,7 +102,7 @@ map_sys = MapSystem(dispatcher, dungeon)
 char_sys.player.current_room = start
 
 rooms = [start]
-for i in range(500):
+for i in range(50):
     room = Room(f'room{i}')
     rooms.append(room)
 

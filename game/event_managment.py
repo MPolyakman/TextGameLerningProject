@@ -7,7 +7,7 @@ from Characters.NPC.creatures import Entity
 from Characters.player import Player
 from items.UseObjects import Item, Door
 from map import Path, Room, Graph
-from event_managment import MoveEvent
+from events import Event, MoveEvent
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -16,7 +16,7 @@ class EventDispatcher:
     def __init__(self):
         self.listeners = {}
 
-    def subscribe(self, event_type, listener: function):
+    def subscribe(self, event_type, listener):
         if event_type not in self.listeners:
             self.listeners[event_type] = []
         self.listeners[event_type].append(listener)
@@ -41,18 +41,17 @@ class ItemSystem:
 class MovingSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
-        move = MoveEvent
         on_move = self.on_move
-        self.event_dispatcher.subscribe(move, on_move)
+        self.event_dispatcher.subscribe(MoveEvent, on_move)
 
     def on_set_position(self, entity, room):
         entity.current_room = room
 
     def on_move(self, move):
         direction = move.direction.lower()
-        target_path = getattr(move.character.current_room, direction)
         if direction not in directions:
             return False
+        target_path = getattr(move.character.current_room, direction)
         if target_path.next_room == None:
             print('no_way')
             return False
