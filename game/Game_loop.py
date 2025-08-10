@@ -1,45 +1,56 @@
 from map import Path, Room, Graph
-# from Characters.NPC.creatures import Creature
-# from Characters.NPC.NPC import 
+from Characters.NPC.creatures import Entity
 from Characters.player import Player
+from items.UseObjects import Item, Door
+from events import MoveEvent
+
+from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
 
-
-
 class Game:
-    def __init__(self, player_name: str, map: Graph, starting_room: Room):
+    def __init__(self, event_dispatcher, character_system,  moving_system, action_system, item_system, map_system, player_name = "Default name"):
 
-        self.graph = map
-        position = self.graph.rooms['starting_room']
+        self.event_dispatcher = event_dispatcher
+
+        self.character_system = character_system
+        self.moving_system = moving_system
+        self.action_system = action_system
+        self.item_system = item_system
+        self.map_system = map_system
+
+        position = self.map_system.map.rooms['starting_room']
         self.player = Player(player_name, position)
         self.characters = {}
 
-    def handle_turn(self, move: str): # все дейтсвия определяем как (character_action__object)
-        character, action, object = move.split("_")
+    def handle_turn(self, event): # все дейтсвия игрока определяем как (action__object)
+        action, object = event.split(" ")
         match action:
-            case "use":
-                self.characters[character].inventory[object].use()
             case "move":
-                self.characters[character].move[object]
+                event = MoveEvent(char_sys.player, object)
+                self.event_dispatcher.emit(event)
+        
 
 
     def draw_map(self):
         map = ""
-        x_values, y_values = zip(*self.graph.coordinates.keys())
+        x_values, y_values = zip(*self.map_system.map.coordinates.keys())
         min_x, max_x = min(x_values), max(x_values)
         min_y, max_y = min(y_values), max(y_values)
         previous_line = []
         for y in range(max_y, min_y-1, -1):
             for x in range(min_x, max_x + 1):
-                if (x, y) in self.graph.coordinates.keys():
-                    map += "▇"
-                    if self.graph.coordinates[(x,y)].east.next_room != None:
+                if (x, y) in self.map_system.map.coordinates.keys():
+                    if self.map_system.map.coordinates[x,y] == self.character_system.player.current_room:
+                        map += "𓀠"
+                    else:
+                        map += "▇"
+                    if self.map_system.map.coordinates[(x,y)].east.next_room != None:
                         map += "---"
                     else:
                         map += "   "
-                    if self.graph.coordinates[(x,y)].south.next_room != None:
+                    if self.map_system.map.coordinates[(x,y)].south.next_room != None:
                         previous_line.append(x)
                 else:
                     map += "    "
@@ -58,26 +69,50 @@ class Game:
         # self.graph.calculate_coordinates()
         print(self.draw_map())
 
-""" отладка """
+    def start_game(self):
+        print('---START---')
+        while True:
+            self.show_map()
+            player_action = input()
+            player_action = player_action.lower()
+            if "exit" in player_action:
+                break
+            self.handle_turn(player_action)
+            
 
+
+
+""" отладка """
+dungeon = Graph()
+player = Player("Goobert Simpleton")
 start = Room("starting_room")
+
+dispatcher = EventDispatcher()
+item_sys = ItemSystem(dispatcher)
+mov_sys = MovingSystem(dispatcher)
+act_sys = ActionSystem(dispatcher)
+char_sys = CharactersSystem(dispatcher)
+char_sys.player = player
+map_sys = MapSystem(dispatcher, dungeon)
+
+char_sys.player.current_room = start
+
 rooms = [start]
-for i in range(100):
+for i in range(500):
     room = Room(f'room{i}')
     rooms.append(room)
 
-dungeon = Graph()
-dungeon.generate_graph(rooms)
-test_game = Game("Pl", dungeon, start)
-test_game.show_map()
+map_sys.generate_graph(rooms)
 
-for r in dungeon.rooms.values():
-    print(f"{r.name} - {dungeon.room_coordinates[r]}:")
-    for d in directions:
-        n_r = getattr(r, d, None)
-        if n_r != None:
-            if n_r.next_room != None:
-                n_r = n_r.next_room
-                print(f"{d} - {n_r.name} ")
-    print()
+test_game = Game(dispatcher, char_sys, mov_sys, act_sys, item_sys, map_sys)
+test_game.start_game()
 
+# for r in dungeon.rooms.values():
+#     print(f"{r.name} - {dungeon.room_coordinates[r]}:")
+#     for d in directions:
+#         n_r = getattr(r, d, None)
+#         if n_r != None:
+#             if n_r.next_room != None:
+#                 n_r = n_r.next_room
+#                 print(f"{d} - {n_r.name} ")
+#     print()

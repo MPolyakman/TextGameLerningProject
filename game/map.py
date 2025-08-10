@@ -56,90 +56,16 @@ class Graph:
         self.coordinates = {}
         self.room_coordinates = {}
     
-    def add_room(self, room: Room):
-        self.rooms[room.name] = room
-    
-    def add_edge(self, from_room: Room, direction, to_room: Room, door = None):
-        from_path = Path(to_room, door)
-        to_path = Path(from_room, door)
-        direction = direction.lower()
-        from_room_slot_free = getattr(from_room, direction).next_room is None
-        to_room_slot_free = getattr(to_room, opposite[direction]).next_room is None
-        if direction in directions and from_room_slot_free and to_room_slot_free:
-            from_room.add_path(from_path, direction)
-            to_room.add_path(to_path, opposite[direction])
-            return True
-        return False
-    
-
-    def generate_graph(self, rooms: list):
-        shuffle(rooms)
-        starting_room = [r for r in rooms if r.name == "starting_room"][0]
-        self.coordinates[(0, 0)] = starting_room
-        self.room_coordinates[starting_room] = (0, 0)
-        self.add_room(starting_room)
-        rooms.remove(starting_room)
-        occupied_coords = set()
-        occupied_coords.add((0,0))
-        x, y = 0, 0
-
-        while rooms:
-            r = choice(rooms)
-            d = choice(directions)
-            node = choice(list(self.rooms.values()))
-            x, y = (self.room_coordinates[node])
-            match d:
-                case "north":
-                    x, y = x, y + 1
-                case "east":
-                    x, y = x + 1, y
-                case "south":
-                    x, y = x, y - 1
-                case "west":
-                    x, y = x - 1, y
-            if (x, y) not in occupied_coords:
-                if self.add_edge(node, d, r):
-                    rooms.remove(r)
-                    self.add_room(r)
-                    occupied_coords.add((x,y))
-                    self.room_coordinates[r] = (x, y)
-                    self.coordinates[(x, y)] = r
-                        
-        # n = len(rooms) // 3
-        # main_root = []
-        # for i in range(n):
-        #     room = rooms[i]
-        #     if room.name == "starting_room":
-        #         starting_room = room
-        #         rooms.remove(room)
-        #         continue
-        #     main_root.append(room)
-        #     rooms.remove(room)
-
-        # prev_node = starting_room
-        # node = starting_room
-        # for room in main_root:
-        #     for direction in directions:
-        #         if random.random()  <= 0.6 and getattr(node, direction).next_room == None:
-        #             self.add_edge(node, direction, room)
-        #             break
-        #     else:
-        #         for direction in directions:
-        #             if getattr(prev_node, direction).next_room == None:
-        #                 self.add_edge(prev_node, direction, room)
-        #                 break
-        #     prev_node = node
-        #     node = room
-
-
-    def calculate_coordinates(self):
+    def calculate_coordinates(self): # НЕ РАБОТАЕТ!!!
 
         # поиск точки отсчета графа 
         starting_room = self.rooms.get("starting_room")
         if not starting_room:
             return
         self.coordinates = {}
+        self.room_coordinates = {}
         self.coordinates[(0,0)] = starting_room
+        self.room_coordinates[starting_room] = (0,0)
 
         #BFS
         calculated = set()
@@ -149,15 +75,29 @@ class Graph:
         x, y = 0, 0
         while q :
             current = q.popleft()
-            for direction in directions:
-                next_room = getattr(current, direction).next_room
-                if next_room not in calculated:
-                    if direction == "north": self.coordinates[x, y + 1] = next_room
-                    elif direction == "east": self.coordinates[x + 1, y ] = next_room
-                    elif direction == "south": self.coordinates[x , y - 1 ] = next_room
-                    elif direction == "west": self.coordinates[x - 1, y] = next_room
-                    q.append(next_room)
-                    calculated.add(next_room)
+            if current != None:
+                x, y = self.room_coordinates[current]
+                for direction in directions:
+                    next_room = getattr(current, direction).next_room
+                    if next_room not in calculated:
+                        if direction == "north":
+                            x, y = x, y + 1
+                            self.coordinates[x, y] = next_room
+                            self.room_coordinates[next_room] = (x, y )
+                        elif direction == "east":
+                            x, y = x + 1, y
+                            self.coordinates[x , y ] = next_room
+                            self.room_coordinates[next_room] = (x , y)
+                        elif direction == "south":
+                            x, y = x, y - 1
+                            self.coordinates[x , y ] = next_room
+                            self.room_coordinates[next_room] = (x, y )
+                        elif direction == "west":
+                            x, y = x - 1, y
+                            self.coordinates[x, y] = next_room
+                            self.room_coordinates[next_room] = (x, y)
+                        q.append(next_room)
+                        calculated.add(next_room)
 
     def serialize(self):
         serialized_rooms = []

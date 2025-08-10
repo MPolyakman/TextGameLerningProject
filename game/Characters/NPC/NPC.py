@@ -1,9 +1,9 @@
-from creatures import Creature
+from creatures import Entity
 import ollama
 from aistuff.aifunс import fix_mes
 
 
-class NPC(Creature):
+class NPC(Entity):
     def __init__(self, name, position, max_health, biography):
         super().__init__(name, position, max_health)
         self.biography = biography

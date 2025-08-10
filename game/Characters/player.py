@@ -1,6 +1,6 @@
-from .NPC.creatures import Creature
+from Characters.NPC.creatures import Entity
 
-class Player(Creature):
-    def __init__(self, name, position, max_health = 100):
-        super().__init__(name, position, max_health)
+class Player(Entity):
+    def __init__(self, name, position = None, max_health = 100):
+        super().__init__(name, max_health)
         self.history = ''
