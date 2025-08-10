@@ -7,7 +7,6 @@ from Characters.NPC.creatures import Entity
 from Characters.player import Player
 from items.UseObjects import Item, Door
 from map import Path, Room, Graph
-from event_managment import MoveEvent
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']

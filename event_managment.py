@@ -3,7 +3,7 @@
 from game.Characters.NPC.creatures import Entity
 from game.Characters.player import Player
 from game.items.UseObjects import Item, Door
-from map import Path, Room, Graph
+from game.map import Path, Room, Graph
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
