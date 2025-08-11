@@ -1,13 +1,13 @@
 # Event-Based systems
 
-from random import shuffle, choice
+from random import shuffle, choice, random
 from collections import deque
 
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
-from items.UseObjects import Item, Door
+from items.UseObjects import Item, Door, Key
 from map import Path, Room, Graph
-from events import Event, MoveEvent
+from events import Event, MoveEvent, TryOpenDoor
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -26,6 +26,8 @@ class EventDispatcher:
         for listener in self.listeners.get(event_type, []):
             listener(event)
 
+
+
 class ItemSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
@@ -38,6 +40,8 @@ class ItemSystem:
 
     def on_use_item(self, item):
         self.event_dispatcher.emit(f"use_{item.name}") 
+
+
 
 class MovingSystem:
     def __init__(self, event_dispatcher):
@@ -56,16 +60,24 @@ class MovingSystem:
         if target_path.next_room == None:
             print('no_way')
             return False
-        if isinstance(target_path.obstacle, Door):
-            if target_path.obstacle.locked:
-                print(f'дверь {str(target_path.obstacle)} заперта')
-                return False
-        self.on_set_position(move.character, target_path.next_room)
-        return True
+        if target_path.obstacle != None:
+            print(f"На пути стоит препятсвие")
+            if isinstance(target_path.obstacle, Door):
+                if target_path.obstacle.locked:
+                    event = TryOpenDoor(move.character, target_path.obstacle)
+                    print(f'{str(target_path.obstacle)}')
+                    self.event_dispatcher.emit(event)
+        else:
+            self.on_set_position(move.character, target_path.next_room)
+            return True
+
+
 
 class ActionSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
+        on_try_open_door = self.try_to_open_door
+        self.event_dispatcher.subscribe(TryOpenDoor, on_try_open_door)
 
     def affect_health(self, entity, points: int):
         entity.hp += points
@@ -79,11 +91,23 @@ class ActionSystem:
         entity.alive = False
         entity.description += "Существо мертво."
 
+    def try_to_open_door(self, event):
+        for item in event.character.inventory:
+            if isinstance(item, Key):
+                if item.name == event.door.key_name:
+                    event.door.locked = False
+                    print(f"дверь была открыта с помощью {item.name}")
+        print("Дверь заперта")
+
+
+
 class CharactersSystem:
     def __init__(self, event_dispatcher, player_name = "Default_name"):
         self.event_dispatcher = event_dispatcher
         self.player = Player(player_name)
         self.characters = {}
+
+
 
 class MapSystem:
     def __init__(self, event_dispatcher, graph : Graph):
@@ -106,7 +130,7 @@ class MapSystem:
         return False
     
 
-    def generate_graph(self, rooms: list):
+    def generate_graph(self, rooms: list, doors: list):
         shuffle(rooms)
         starting_room = [r for r in rooms if r.name == "starting_room"][0]
         self.map.coordinates[(0, 0)] = starting_room
@@ -119,10 +143,10 @@ class MapSystem:
 
         while rooms:
             r = choice(rooms)
-            d = choice(directions)
+            direct = choice(directions)
             node = choice(list(self.map.rooms.values()))
             x, y = (self.map.room_coordinates[node])
-            match d:
+            match direct:
                 case "north":
                     x, y = x, y + 1
                 case "east":
@@ -132,7 +156,11 @@ class MapSystem:
                 case "west":
                     x, y = x - 1, y
             if (x, y) not in occupied_coords:
-                if self.add_edge(node, d, r):
+                chance = random()
+                door = None
+                if chance <= 0.4:
+                    door = choice(doors)
+                if self.add_edge(node, direct, r, door):
                     rooms.remove(r)
                     self.add_room(r)
                     occupied_coords.add((x,y))
