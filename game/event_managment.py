@@ -158,7 +158,7 @@ class MapSystem:
             if (x, y) not in occupied_coords:
                 chance = random()
                 door = None
-                if chance < 0.4:
+                if chance <= 0.4:
                     door = choice(doors)
                 if self.add_edge(node, direct, r, door):
                     rooms.remove(r)
