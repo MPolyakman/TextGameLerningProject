@@ -36,8 +36,6 @@ class Game:
             case "move":
                 event = MoveEvent(char_sys.player, object)
                 self.event_dispatcher.emit(event)
-        
-
 
     def draw_map(self):
         map = ""
@@ -53,7 +51,11 @@ class Game:
                     else:
                         map += "▇"
                     if self.map_system.map.coordinates[(x,y)].east.next_room != None:
-                        map += "---"
+                        obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                        if obstacle == None:
+                            map += "---"
+                        elif isinstance(obstacle, Door):
+                            map += "-D-"
                     else:
                         map += "   "
                     if self.map_system.map.coordinates[(x,y)].south.next_room != None:
@@ -63,7 +65,11 @@ class Game:
             map += '\n'
             for x in range(min_x, max_x + 1):
                 if x in previous_line:
-                    map += "|   "
+                    obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                    if obstacle == None:
+                        map += "|   "
+                    elif isinstance(obstacle, Door):
+                        map += "D   "
                 else:
                     map += "    "
             previous_line.clear()
@@ -90,6 +96,7 @@ class Game:
 dungeon = Graph()
 player = Player("Goobert Simpleton")
 start = Room("starting_room")
+door = Door("default door","Master key")
 
 dispatcher = EventDispatcher()
 item_sys = ItemSystem(dispatcher)
@@ -106,7 +113,7 @@ for i in range(50):
     room = Room(f'room{i}')
     rooms.append(room)
 
-map_sys.generate_graph(rooms)
+map_sys.generate_graph(rooms, [door])
 
 test_game = Game(dispatcher, char_sys, mov_sys, act_sys, item_sys, map_sys)
 test_game.start_game()

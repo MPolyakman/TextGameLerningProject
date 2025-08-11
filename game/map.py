@@ -43,6 +43,7 @@ class Room:
             setattr(self, direction, path)
             return True
         return False
+    
     def __str__(self, max_distance = 4, distance = 0):
         description = self.description
         for direction in directions: # Собирает описание с соседних комнат/тайлов если между ними нету препятсвие или есть другая видимость (для больших комнат)
@@ -56,61 +57,3 @@ class Graph:
         self.coordinates = {}
         self.room_coordinates = {}
     
-    def calculate_coordinates(self): # НЕ РАБОТАЕТ!!!
-
-        # поиск точки отсчета графа 
-        starting_room = self.rooms.get("starting_room")
-        if not starting_room:
-            return
-        self.coordinates = {}
-        self.room_coordinates = {}
-        self.coordinates[(0,0)] = starting_room
-        self.room_coordinates[starting_room] = (0,0)
-
-        #BFS
-        calculated = set()
-        calculated.add(starting_room)
-        q = deque()
-        q.append(starting_room)
-        x, y = 0, 0
-        while q :
-            current = q.popleft()
-            if current != None:
-                x, y = self.room_coordinates[current]
-                for direction in directions:
-                    next_room = getattr(current, direction).next_room
-                    if next_room not in calculated:
-                        if direction == "north":
-                            x, y = x, y + 1
-                            self.coordinates[x, y] = next_room
-                            self.room_coordinates[next_room] = (x, y )
-                        elif direction == "east":
-                            x, y = x + 1, y
-                            self.coordinates[x , y ] = next_room
-                            self.room_coordinates[next_room] = (x , y)
-                        elif direction == "south":
-                            x, y = x, y - 1
-                            self.coordinates[x , y ] = next_room
-                            self.room_coordinates[next_room] = (x, y )
-                        elif direction == "west":
-                            x, y = x - 1, y
-                            self.coordinates[x, y] = next_room
-                            self.room_coordinates[next_room] = (x, y)
-                        q.append(next_room)
-                        calculated.add(next_room)
-
-    def serialize(self):
-        serialized_rooms = []
-        for room_name, room_obj in self.rooms.items():
-            room_data = room_obj.__dict__.copy()
-            room_data['name'] = room_name
-            if room_obj in self.room_coordinates:
-                x, y = self.room_coordinates[room_obj]
-                room_data['x'] = x
-                room_data['y'] = y
-            else:
-                room_data['x'] = None
-                room_data['y'] = None
-            
-            serialized_rooms.append(room_data)
-        return {'Graph': serialized_rooms}
