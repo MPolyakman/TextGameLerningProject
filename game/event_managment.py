@@ -5,7 +5,7 @@ from collections import deque
 
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
-from items.UseObjects import Item, Door, Key
+from items.UseObjects import Item, Door, Key, Object, Obstacle
 from map import Path, Room, Graph
 from events import (Event,
             MoveEvent,
@@ -65,16 +65,17 @@ class MovingSystem:
         if target_path.next_room == None:
             print('no_way')
             return False
-        if target_path.obstacle != None:
-            print(f"На пути стоит препятсвие")
-            if isinstance(target_path.obstacle, Door):
-                if target_path.obstacle.locked:
-                    event = TryOpenDoor(move.character, target_path.obstacle)
-                    print(f'{str(target_path.obstacle)}')
-                    self.event_dispatcher.emit(event)
-        else:
-            self.on_set_position(move.character, target_path.next_room)
-            return True
+        if isinstance(target_path.obstacle, Door):
+            if target_path.obstacle.locked:
+                event = TryOpenDoor(move.character, target_path.obstacle)
+                print(f'{str(target_path.obstacle)}')
+                self.event_dispatcher.emit(event)
+            else:
+                self.on_set_position(move.character, target_path.next_room)
+                return True
+        elif isinstance(target_path.obstacle, Obstacle):
+            print(f"На пути стоит препятсвие {str(target_path.obstacle)}")
+            return False
 
 
 
@@ -91,24 +92,33 @@ class ActionSystem:
         self.event_dispatcher.subscribe(DeathEvent, on_die)
 
     def change_characteristics(self, event: ChangeCharacteristicEvent):
+        str = ""
         for attr, value in event.changes.items():
             setattr(event.char, attr, getattr(event.char, attr, 0) + value)
+            str += f"{attr} изменился на {value}"
+        return str
+            
 
     def set_characteristics(self, event: SetCharacteristicEvent):
         for attr, value in event.changes.items():
             setattr(event.char, attr, value)
+            print(f"{attr} теперь равен {value}")
 
     def die(self, entity):
         entity.alive = False
         entity.description += "Существо мертво."
+        print(f"{entity.name} погибло")
 
     def try_to_open_door(self, event):
-        for item in event.character.inventory:
+        for item in event.character.inventory.values():
             if isinstance(item, Key):
                 if item.name == event.door.key_name:
                     event.door.locked = False
                     print(f"дверь была открыта с помощью {item.name}")
-        print("Дверь заперта")
+                    return
+        print("Дверь не получилось открыть")
+
+
 
 class CharactersSystem:
     def __init__(self, event_dispatcher, player_name = "Default_name"):
