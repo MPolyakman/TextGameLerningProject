@@ -9,14 +9,27 @@ class Item():
         self.description = description
 
     def __str__(self) -> str:
+        return self.name+ getattr(self, "description", "")
+    
+class Object():
+    def __init__(self, name: str, description = '', hp = 2000):
+        self.name = name
+        self.description = description
+        self.hp = hp
+
+    def __str__(self) -> str:
         return getattr(self, "description", "")
     
-class Door():
-    def __init__(self,name, key_name, locked = True, description = ''):
-        self.name = name
+class Obstacle(Object):
+    def __init__(self, name, description = "", hp = 5000, visibility_through = False):
+        super().__init__(name, description, hp)
+        self.visible_through = visibility_through
+
+class Door(Obstacle):
+    def __init__(self,name, key_name, locked = True, hp = 3000, description = ''):
+        super().__init__(name, description, hp, visibility_through=False)
         self.locked = locked
         self.key_name = key_name
-        self.description = description
 
     def __str__(self):
         return f"Это дверь. Ее открывает {self.key_name}"
@@ -27,7 +40,7 @@ class Key(Item):
     
 class UseItem(Item):
     @abstractmethod
-    def use(self, char):
+    def use(self, char) -> Event:
         pass
 
 class CharacteristicsItem(UseItem):

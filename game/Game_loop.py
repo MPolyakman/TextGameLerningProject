@@ -37,8 +37,14 @@ class Game:
                 event = MoveEvent(char_sys.player, object)
                 self.event_dispatcher.emit(event)
             case "use":
-                if object in player.inventory.keys():
-                    self.event_dispatcher.emit(player.inventory[object].use(player))
+                if object in char_sys.player.inventory.keys():
+                    self.event_dispatcher.emit(char_sys.player.inventory[object].use(player))
+            case "inspect":
+                match object:
+                    case "room":
+                        print(char_sys.player.current_room)
+                    case _:
+                        print(char_sys.player.inventory[object])
 
     def draw_map(self):
         map = ""
@@ -99,7 +105,8 @@ class Game:
 dungeon = Graph()
 player = Player("Goobert Simpleton")
 start = Room("starting_room")
-door = Door("default door","Master key")
+locked_door = Door("door with lock", "Master key")
+opened_door = Door("Simple_door", "small key", locked=False)
 medkit = CharacteristicsItem("medkit", {"hp": 50, "max_hp": 10})
 
 
@@ -119,8 +126,9 @@ for i in range(10):
     rooms.append(room)
 
 items = [medkit]
+doors = [locked_door, opened_door]
 
-map_sys.generate_graph(rooms, [door], items)
+map_sys.generate_graph(rooms, doors, items)
 
 test_game = Game(dispatcher, char_sys, mov_sys, act_sys, item_sys, map_sys)
 test_game.start_game()
