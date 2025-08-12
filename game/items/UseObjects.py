@@ -1,6 +1,8 @@
 #список предметов
 from abc import ABC, abstractmethod
 
+from events import Event, ChangeCharacteristicEvent
+
 class Item():
     def __init__(self, name: str, description = ''):
         self.name = name
@@ -22,3 +24,17 @@ class Door():
 class Key(Item):
     def __str__(self) -> str:
         return f"Это ключ. {getattr(self, "description", "")}"
+    
+class UseItem(Item):
+    @abstractmethod
+    def use(self, char):
+        pass
+
+class CharacteristicsItem(UseItem):
+    def __init__(self, name, changes = dict(), description = ""):
+        super().__init__(name, description)
+        self.changes = changes
+
+    def use(self, char) -> Event:
+        return ChangeCharacteristicEvent(char, self.changes)
+

@@ -1,7 +1,7 @@
 from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
-from items.UseObjects import Item, Door
+from items.UseObjects import Item, Door, UseItem, CharacteristicsItem
 from events import MoveEvent
 
 from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
@@ -36,6 +36,9 @@ class Game:
             case "move":
                 event = MoveEvent(char_sys.player, object)
                 self.event_dispatcher.emit(event)
+            case "use":
+                if object in player.inventory.keys():
+                    self.event_dispatcher.emit(player.inventory[object].use(player))
 
     def draw_map(self):
         map = ""
@@ -97,6 +100,8 @@ dungeon = Graph()
 player = Player("Goobert Simpleton")
 start = Room("starting_room")
 door = Door("default door","Master key")
+medkit = CharacteristicsItem("medkit", {"hp": 50, "max_hp": 10})
+
 
 dispatcher = EventDispatcher()
 item_sys = ItemSystem(dispatcher)
@@ -113,17 +118,20 @@ for i in range(10):
     room = Room(f'room{i}')
     rooms.append(room)
 
-map_sys.generate_graph(rooms, [door])
+items = [medkit]
+
+map_sys.generate_graph(rooms, [door], items)
 
 test_game = Game(dispatcher, char_sys, mov_sys, act_sys, item_sys, map_sys)
 test_game.start_game()
 
-# for r in dungeon.rooms.values():
-#     print(f"{r.name} - {dungeon.room_coordinates[r]}:")
-#     for d in directions:
-#         n_r = getattr(r, d, None)
-#         if n_r != None:
-#             if n_r.next_room != None:
-#                 n_r = n_r.next_room
-#                 print(f"{d} - {n_r.name} ")
-#     print()
+for r in dungeon.rooms.values():
+    print(f"{r.name} - {dungeon.room_coordinates[r]}:")
+    print(f"items: {r.items}")
+    for d in directions:
+        n_r = getattr(r, d, None)
+        if n_r != None:
+            if n_r.next_room != None:
+                n_r = n_r.next_room
+                print(f"{d} - {n_r.name} ")
+    print()

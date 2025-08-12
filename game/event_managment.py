@@ -7,7 +7,12 @@ from Characters.NPC.creatures import Entity
 from Characters.player import Player
 from items.UseObjects import Item, Door, Key
 from map import Path, Room, Graph
-from events import Event, MoveEvent, TryOpenDoor
+from events import (Event,
+            MoveEvent,
+            TryOpenDoor,
+            ChangeCharacteristicEvent,
+            SetCharacteristicEvent,
+            DeathEvent)
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -76,17 +81,23 @@ class MovingSystem:
 class ActionSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
-        on_try_open_door = self.try_to_open_door
-        self.event_dispatcher.subscribe(TryOpenDoor, on_try_open_door)
 
-    def affect_health(self, entity, points: int):
-        entity.hp += points
-        if entity.hp > entity.max_hp:
-            entity.hp = entity.max_hp
-        if entity.hp <= 0:
-            entity.hp = 0
-            entity.die()
-    
+        on_try_open_door = self.try_to_open_door
+        on_chage_characteristics = self.change_characteristics
+        on_die = self.die
+
+        self.event_dispatcher.subscribe(TryOpenDoor, on_try_open_door)
+        self.event_dispatcher.subscribe(ChangeCharacteristicEvent, on_chage_characteristics)
+        self.event_dispatcher.subscribe(DeathEvent, on_die)
+
+    def change_characteristics(self, event: ChangeCharacteristicEvent):
+        for attr, value in event.changes.items():
+            setattr(event.char, attr, getattr(event.char, attr, 0) + value)
+
+    def set_characteristics(self, event: SetCharacteristicEvent):
+        for attr, value in event.changes.items():
+            setattr(event.char, attr, value)
+
     def die(self, entity):
         entity.alive = False
         entity.description += "Существо мертво."
@@ -98,8 +109,6 @@ class ActionSystem:
                     event.door.locked = False
                     print(f"дверь была открыта с помощью {item.name}")
         print("Дверь заперта")
-
-
 
 class CharactersSystem:
     def __init__(self, event_dispatcher, player_name = "Default_name"):
@@ -130,7 +139,7 @@ class MapSystem:
         return False
     
 
-    def generate_graph(self, rooms: list, doors: list):
+    def generate_graph(self, rooms: list, doors: list, items: list):
         shuffle(rooms)
         starting_room = [r for r in rooms if r.name == "starting_room"][0]
         self.map.coordinates[(0, 0)] = starting_room
@@ -166,6 +175,10 @@ class MapSystem:
                     occupied_coords.add((x,y))
                     self.map.room_coordinates[r] = (x, y)
                     self.map.coordinates[(x, y)] = r
+                    chance = random()
+                    if chance <= 0.8:
+                        itm = choice(items)
+                        r.items[itm.name] = itm
 
     def calculate_coordinates(self): # НЕ РАБОТАЕТ!!!
         # поиск точки отсчета графа 
