@@ -38,4 +38,9 @@ class SpawnEntityEvent(Event):
     def __init__(self, char, room):
         self.char = char
         self.item = room
-        
+
+class SayEvent(Event):
+    def __init__(self, speaker, words: str, recepient):
+        self.speaker = speaker
+        self.words = words
+        self.recepient = recepient

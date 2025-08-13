@@ -11,7 +11,10 @@ from events import (Event,
             TryOpenDoor,
             ChangeCharacteristicEvent,
             SetCharacteristicEvent,
-            DeathEvent)
+            DeathEvent,
+            SayEvent,
+            SpawnEntityEvent)
+from interactions import Interaction
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -147,11 +150,18 @@ class CharactersSystem:
         new_char = entity_type(f"entity_{n}")
         self.characters[f"entity_{n}"] = new_char
         return new_char
-    
-    def start_interaction(self, chars:list):
-        pass
 
-    
+
+
+class InteractionSystem:
+    def __init__(self, event_dispatcher):
+        self.event_dispatcher = event_dispatcher
+
+    def start_interaction(self, chars: list):
+        interaction = Interaction(chars)
+        while len(interaction.chars) > 1:
+            pass
+
 
 
 class MapSystem:

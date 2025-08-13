@@ -5,3 +5,4 @@ game/Characters/__pycache__/
 game/items/__pycache__/
 .vscode/
 game/.vscode/
+game/NPC/__pycache__/
