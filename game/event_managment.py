@@ -47,6 +47,8 @@ class ItemSystem:
     def on_use_item(self, item):
         self.event_dispatcher.emit(f"use_{item.name}") 
 
+    def give_item(self, gifter: Entity, item: Item, recepient: Entity):
+        recepient.inventory[item.name] = gifter.inventory[item.name]
 
 
 
@@ -142,6 +144,12 @@ class CharactersSystem:
         new_char = entity_type(f"entity_{n}")
         self.characters[f"entity_{n}"] = new_char
         return new_char
+    
+    def start_interaction(self, chars:list):
+        pass
+
+    
+
 
 class MapSystem:
     def __init__(self, event_dispatcher, graph : Graph):

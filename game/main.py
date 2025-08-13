@@ -3,7 +3,7 @@ from Game_loop import Game
 from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
-from items.UseObjects import Item, Door
+from items.UseObjects import Item, Door, CharacteristicsItem
 from events import MoveEvent
 
 from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
@@ -13,6 +13,9 @@ def main():
     player = Player("Goobert Simpleton")
     start = Room("starting_room")
     door = Door("default door","Master key")
+    medkit = CharacteristicsItem("medkit", {"hp": 40, "max_hp": 10})
+    items = [medkit]
+    
 
     dispatcher = EventDispatcher()
     item_sys = ItemSystem(dispatcher)
@@ -29,7 +32,7 @@ def main():
         room = Room(f'room{i}')
         rooms.append(room)
 
-    map_sys.generate_graph(rooms, [door])
+    map_sys.generate_graph(rooms, [door], items)
 
     test_game = Game(dispatcher, char_sys, mov_sys, act_sys, item_sys, map_sys)
     test_game.start_game()
