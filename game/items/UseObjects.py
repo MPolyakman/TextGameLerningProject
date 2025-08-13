@@ -37,7 +37,7 @@ class Door(Obstacle):
 
 class Key(Item):
     def __str__(self) -> str:
-        return f"Это ключ. {getattr(self, "description", "")}"
+        return f"Это ключ. {getattr(self, 'description', '')}"
     
 class UseItem(Item):
     @abstractmethod

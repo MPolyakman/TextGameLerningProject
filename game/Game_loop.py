@@ -65,13 +65,9 @@ class Game:
                         map += "𓀠"
                     else:
                         map += "▇"
-                    if self.map_system.map.coordinates[(x,y)].east.next_room != None:
-                        obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
-                        if obstacle == None:
-                            map += "---"
-                        elif isinstance(obstacle, Door):
-                            map += "-D-"
-                        obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                    path = self.map_system.map.coordinates[(x,y)].east.next_room
+                    obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                    if path != None:
                         if obstacle == None:
                             map += "---"
                         elif isinstance(obstacle, Door):
@@ -85,11 +81,6 @@ class Game:
             map += '\n'
             for x in range(min_x, max_x + 1):
                 if x in previous_line:
-                    obstacle = self.map_system.map.coordinates[(x,y)].south.obstacle
-                    if obstacle == None:
-                        map += "|   "
-                    elif isinstance(obstacle, Door):
-                        map += "D   "
                     obstacle = self.map_system.map.coordinates[(x,y)].south.obstacle
                     if obstacle == None:
                         map += "|   "

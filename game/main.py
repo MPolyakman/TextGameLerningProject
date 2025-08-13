@@ -28,7 +28,7 @@ def main():
     char_sys.player.current_room = start
 
     rooms = [start]
-    for i in range(10):
+    for i in range(25):
         room = Room(f'room{i}')
         rooms.append(room)
 

@@ -70,17 +70,20 @@ class MovingSystem:
         if target_path.next_room == None:
             print('no_way')
             return False
-        if isinstance(target_path.obstacle, Door):
-            if target_path.obstacle.locked:
-                event = TryOpenDoor(move.character, target_path.obstacle)
-                print(f'{str(target_path.obstacle)}')
-                self.event_dispatcher.emit(event)
-            else:
-                self.on_set_position(move.character, target_path.next_room)
-                return True
-        elif isinstance(target_path.obstacle, Obstacle):
-            print(f"На пути стоит препятсвие {str(target_path.obstacle)}")
-            return False
+        if target_path.obstacle != None:
+            if isinstance(target_path.obstacle, Door):
+                if target_path.obstacle.locked:
+                    event = TryOpenDoor(move.character, target_path.obstacle)
+                    print(f'{str(target_path.obstacle)}')
+                    self.event_dispatcher.emit(event)
+                else:
+                    self.on_set_position(move.character, target_path.next_room)
+                    return True
+            elif isinstance(target_path.obstacle, Obstacle):
+                print(f"На пути стоит препятсвие {str(target_path.obstacle)}")
+                return False
+        else:
+            self.on_set_position(move.character, target_path.next_room)
 
 
 
@@ -160,12 +163,12 @@ class MapSystem:
         self.map.rooms[room.name] = room
     
     def add_edge(self, from_room: Room, direction, to_room: Room, door = None):
-        from_path = Path(to_room, door)
-        to_path = Path(from_room, door)
         direction = direction.lower()
-        from_room_slot_free = getattr(from_room, direction).next_room is None
-        to_room_slot_free = getattr(to_room, opposite[direction]).next_room is None
+        from_room_slot_free = getattr(from_room, direction).next_room == None
+        to_room_slot_free = getattr(to_room, opposite[direction]).next_room == None
         if direction in directions and from_room_slot_free and to_room_slot_free:
+            from_path = Path(to_room, door)
+            to_path = Path(from_room, door)
             from_room.add_path(from_path, direction)
             to_room.add_path(to_path, opposite[direction])
             return True
@@ -184,8 +187,7 @@ class MapSystem:
         x, y = 0, 0
 
         while rooms:
-            r = choice(rooms)
-            direct = choice(directions)
+            r = rooms[0]
             direct = choice(directions)
             node = choice(list(self.map.rooms.values()))
             x, y = (self.map.room_coordinates[node])
@@ -204,20 +206,15 @@ class MapSystem:
                 if chance <= 0.4:
                     door = choice(doors)
                 if self.add_edge(node, direct, r, door):
+                    rooms.remove(r)
+                    self.add_room(r)
+                    occupied_coords.add((x,y))
+                    self.map.room_coordinates[r] = (x, y)
+                    self.map.coordinates[(x, y)] = r
                     chance = random()
-                    door = None
-                    if chance <= 0.4:
-                        door = choice(doors)
-                    if self.add_edge(node, direct, r, door):
-                        rooms.remove(r)
-                        self.add_room(r)
-                        occupied_coords.add((x,y))
-                        self.map.room_coordinates[r] = (x, y)
-                        self.map.coordinates[(x, y)] = r
-                        chance = random()
-                        if chance <= 0.8:
-                            itm = choice(items)
-                            r.items[itm.name] = itm
+                    if chance <= 0.8:
+                        itm = choice(items)
+                        r.items[itm.name] = itm
 
     def calculate_coordinates(self): # НЕ РАБОТАЕТ!!!
         # поиск точки отсчета графа 
