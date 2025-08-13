@@ -1,5 +1,6 @@
 import ollama
 import inspect 
+import numpy as np
 
 def fix_mes(mes: str) -> str:
     red_mes = ollama.chat(
@@ -54,6 +55,23 @@ def condition_str_to_dict (self, prompt: str):
                     pass 
             setattr(self, key, value)    
 
+import ollama
+import numpy as np
+from typing import List
 
-
-    
+def context_checker(prompt: str, messages: list[str]) -> bool:
+    if not messages:
+        return True  
+    try:
+        prompt_embedding = ollama.embeddings(model='nomic-embed-text', prompt=prompt)['embedding']
+        context = " ".join(messages)
+        context_embedding = ollama.embeddings(model='nomic-embed-text', prompt=context)['embedding']
+        similarity = np.dot(prompt_embedding, context_embedding) / (
+            np.linalg.norm(prompt_embedding) * np.linalg.norm(context_embedding)
+        )
+        threshold = 0.635 
+        print(f"Сходство: {similarity:.3f}")
+        return similarity >= threshold
+    except Exception as e:
+        print(f"Ошибка при проверке контекста: {e}")
+        return False
