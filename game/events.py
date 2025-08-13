@@ -33,4 +33,9 @@ class UseItemEvent(Event):
     def __init__(self, char, item):
         self.char = char
         self.item = item
+
+class SpawnEntityEvent(Event):
+    def __init__(self, char, room):
+        self.char = char
+        self.item = room
         

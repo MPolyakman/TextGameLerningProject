@@ -126,7 +126,17 @@ class CharactersSystem:
         self.player = Player(player_name)
         self.characters = {}
 
+    def spawn(self, event):
+        entity = event.char
+        room = event.room
+        entity.current_room = room
 
+    def generate_entity(self, entity_type) -> Entity:
+        entity_type = entity_type
+        n = len(self.characters)
+        new_char = entity_type(f"entity_{n}")
+        self.characters[f"entity_{n}"] = new_char
+        return new_char
 
 class MapSystem:
     def __init__(self, event_dispatcher, graph : Graph):
