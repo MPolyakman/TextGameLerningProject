@@ -1,97 +1,48 @@
-from PySide6.QtWidgets import QApplication, QWidget, QPushButton, QMainWindow, QVBoxLayout, QLabel, QHBoxLayout
-from PySide6.QtCore import Qt, QSize
+from Game_loop import Game
 
-class MainWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+from map import Path, Room, Graph
+from Characters.NPC.creatures import Entity
+from Characters.player import Player
+from items.UseObjects import Item, Door
+from events import MoveEvent
 
-        self.setWindowTitle("TextGame")
-        self.setMinimumSize(QSize(144,144))
-        self.setMaximumSize(QSize(1080, 740))
-        self.resize(1080, 740)
+from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
 
-        self.show_main_menu()
+def main():
+    dungeon = Graph()
+    player = Player("Goobert Simpleton")
+    start = Room("starting_room")
+    door = Door("default door","Master key")
 
-    def show_main_menu(self):
-        main_menu = MainMenuWidget(self)
-        self.setCentralWidget(main_menu)
+    dispatcher = EventDispatcher()
+    item_sys = ItemSystem(dispatcher)
+    mov_sys = MovingSystem(dispatcher)
+    act_sys = ActionSystem(dispatcher)
+    char_sys = CharactersSystem(dispatcher)
+    char_sys.player = player
+    map_sys = MapSystem(dispatcher, dungeon)
 
-    def open_the_menu(self):
-        main_menu_bar = MainMenuWidget(self)
-        self.setCentralWidget(main_menu_bar)
-        
-    def close_the_game(self):
-        game.quit()
+    char_sys.player.current_room = start
 
-    def start_the_game(self):
-        game = GameWidget(self)
-        self.setCentralWidget(game)
+    rooms = [start]
+    for i in range(10):
+        room = Room(f'room{i}')
+        rooms.append(room)
 
-class MainMenuWidget(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
+    map_sys.generate_graph(rooms, [door])
 
-        self.main_window = main_window
+    test_game = Game(dispatcher, char_sys, mov_sys, act_sys, item_sys, map_sys)
+    test_game.start_game()
 
-        # кнопка выхода
-        self.exit_button = QPushButton('EXIT')
-        self.exit_button.setCheckable(True)
-        self.exit_button.setFixedSize(100,100)
-        self.exit_button.clicked.connect(self.main_window.close_the_game)
+    # for r in dungeon.rooms.values():
+    #     print(f"{r.name} - {dungeon.room_coordinates[r]}:")
+    #     for d in directions:
+    #         n_r = getattr(r, d, None)
+    #         if n_r != None:
+    #             if n_r.next_room != None:
+    #                 n_r = n_r.next_room
+    #                 print(f"{d} - {n_r.name} ")
+    #     print()
 
-        # кнопка игрулькать
-        self.newgame_button = QPushButton('New Game')
-        self.newgame_button.setCheckable(True)
-        self.newgame_button.setFixedSize(100,100)
-        self.newgame_button.clicked.connect(self.main_window.start_the_game)
-
-
-
-        #менюхаf
-
-        layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(30)
-
-        layout.addWidget(self.newgame_button)
-        layout.addWidget(self.exit_button)
-
-
-class GameWidget(QWidget):
-    def __init__(self, main_window):
-        super().__init__()
-
-        self.main_window = main_window
-
-        #кнопка меню виджет
-        interface_layout = QVBoxLayout(self)
-
-        top_layout = QHBoxLayout()
-        top_layout.setAlignment(Qt.AlignmentFlag.AlignLeft |Qt.AlignmentFlag.AlignTop)
-
-        self.menu_button = QPushButton("Menu")
-        self.menu_button.setCheckable(True)
-        self.menu_button.clicked.connect(self.main_window.open_the_menu)
-        top_layout.addWidget(self.menu_button)
-
-        #игровой текст виджет
-        text_layout = QVBoxLayout()
-        text_layout.setAlignment(Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignVCenter)
-
-        self.text = QLabel("*ИГРА")
-        text_layout.addWidget(self.text)
-
-        interface_layout.addLayout(top_layout)
-        interface_layout.addLayout(text_layout)
-
-
-
-
-game = QApplication([])
-
-window = MainWindow()
-window.show()
-
-
-game.exec()
-print("Завершено успешно!")
+if __name__ == "__main__":
+    main()

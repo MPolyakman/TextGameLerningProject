@@ -1,5 +1,4 @@
 # Event-Based systems
-
 from random import shuffle, choice, random
 from collections import deque
 
@@ -33,6 +32,8 @@ class EventDispatcher:
 
 
 
+
+
 class ItemSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
@@ -45,6 +46,8 @@ class ItemSystem:
 
     def on_use_item(self, item):
         self.event_dispatcher.emit(f"use_{item.name}") 
+
+
 
 
 
@@ -76,6 +79,8 @@ class MovingSystem:
         elif isinstance(target_path.obstacle, Obstacle):
             print(f"На пути стоит препятсвие {str(target_path.obstacle)}")
             return False
+
+
 
 
 
@@ -173,6 +178,7 @@ class MapSystem:
         while rooms:
             r = choice(rooms)
             direct = choice(directions)
+            direct = choice(directions)
             node = choice(list(self.map.rooms.values()))
             x, y = (self.map.room_coordinates[node])
             match direct:
@@ -190,15 +196,20 @@ class MapSystem:
                 if chance <= 0.4:
                     door = choice(doors)
                 if self.add_edge(node, direct, r, door):
-                    rooms.remove(r)
-                    self.add_room(r)
-                    occupied_coords.add((x,y))
-                    self.map.room_coordinates[r] = (x, y)
-                    self.map.coordinates[(x, y)] = r
                     chance = random()
-                    if chance <= 0.8:
-                        itm = choice(items)
-                        r.items[itm.name] = itm
+                    door = None
+                    if chance <= 0.4:
+                        door = choice(doors)
+                    if self.add_edge(node, direct, r, door):
+                        rooms.remove(r)
+                        self.add_room(r)
+                        occupied_coords.add((x,y))
+                        self.map.room_coordinates[r] = (x, y)
+                        self.map.coordinates[(x, y)] = r
+                        chance = random()
+                        if chance <= 0.8:
+                            itm = choice(items)
+                            r.items[itm.name] = itm
 
     def calculate_coordinates(self): # НЕ РАБОТАЕТ!!!
         # поиск точки отсчета графа 

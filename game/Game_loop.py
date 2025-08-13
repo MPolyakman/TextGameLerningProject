@@ -32,24 +32,25 @@ class Game:
 
     def handle_turn(self, player_action): 
         action, object = player_action.split(" ")
+        player = self.character_system.player
         match action:
             case "move":
-                event = MoveEvent(char_sys.player, object)
+                event = MoveEvent(player, object)
                 self.event_dispatcher.emit(event)
             case "use":
-                if object in char_sys.player.inventory.keys():
-                    self.event_dispatcher.emit(char_sys.player.inventory[object].use(player))
+                if object in player.inventory.keys():
+                    self.event_dispatcher.emit(player.inventory[object].use(player))
             case "inspect":
                 match object:
                     case "room":
-                        print(char_sys.player.current_room)
+                        print(player.current_room)
                     case "yourself":
-                        print(char_sys.player)
+                        print(player)
                     case "stats":
-                        print((char_sys.player.repr_stats()))
+                        print((player.repr_stats()))
                     case _:
-                        if object in char_sys.player.inventory.keys():
-                            print(char_sys.player.inventory[object])
+                        if object in player.inventory.keys():
+                            print(player.inventory[object])
 
     def draw_map(self):
         map = ""
@@ -70,6 +71,11 @@ class Game:
                             map += "---"
                         elif isinstance(obstacle, Door):
                             map += "-D-"
+                        obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                        if obstacle == None:
+                            map += "---"
+                        elif isinstance(obstacle, Door):
+                            map += "-D-"
                     else:
                         map += "   "
                     if self.map_system.map.coordinates[(x,y)].south.next_room != None:
@@ -79,6 +85,11 @@ class Game:
             map += '\n'
             for x in range(min_x, max_x + 1):
                 if x in previous_line:
+                    obstacle = self.map_system.map.coordinates[(x,y)].south.obstacle
+                    if obstacle == None:
+                        map += "|   "
+                    elif isinstance(obstacle, Door):
+                        map += "D   "
                     obstacle = self.map_system.map.coordinates[(x,y)].south.obstacle
                     if obstacle == None:
                         map += "|   "
@@ -103,50 +114,3 @@ class Game:
                 break
             self.handle_turn(player_action)
             
-
-
-
-""" отладка """
-dungeon = Graph()
-player = Player("Goobert Simpleton")
-start = Room("starting_room")
-locked_door = Door("door with lock", "Master key")
-opened_door = Door("Simple_door", "small key", locked=False)
-medkit = CharacteristicsItem("medkit", {"hp": 50, "max_hp": 10})
-key = Key("Master key")
-player.inventory["Master key"] = key
-
-
-dispatcher = EventDispatcher()
-item_sys = ItemSystem(dispatcher)
-mov_sys = MovingSystem(dispatcher)
-act_sys = ActionSystem(dispatcher)
-char_sys = CharactersSystem(dispatcher)
-char_sys.player = player
-map_sys = MapSystem(dispatcher, dungeon)
-
-char_sys.player.current_room = start
-
-rooms = [start]
-for i in range(10):
-    room = Room(f'room{i}')
-    rooms.append(room)
-
-items = [medkit]
-doors = [locked_door, opened_door]
-
-map_sys.generate_graph(rooms, doors, items)
-
-test_game = Game(dispatcher, char_sys, mov_sys, act_sys, item_sys, map_sys)
-test_game.start_game()
-
-# for r in dungeon.rooms.values():
-#     print(f"{r.name} - {dungeon.room_coordinates[r]}:")
-#     print(f"items: {r.items}")
-#     for d in directions:
-#         n_r = getattr(r, d, None)
-#         if n_r != None:
-#             if n_r.next_room != None:
-#                 n_r = n_r.next_room
-#                 print(f"{d} - {n_r.name} ")
-#     print()

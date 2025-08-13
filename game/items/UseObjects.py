@@ -1,4 +1,5 @@
 #список предметов
+#список предметов
 from abc import ABC, abstractmethod
 
 from events import Event, ChangeCharacteristicEvent
