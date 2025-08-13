@@ -34,7 +34,7 @@ class Game:
         action, object = player_action.split(" ")
         match action:
             case "move":
-                event = MoveEvent(char_sys.player, object)
+                event = MoveEvent(self.char_sys.player, object)
                 self.event_dispatcher.emit(event)
 
     def draw_map(self):
