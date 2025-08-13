@@ -1,5 +1,5 @@
 class Entity:
-    def __init__(self, name, max_health: int, position = None):
+    def __init__(self, name, max_health = 100, position = None):
         self.name = name
         self.current_room = position
         self.inventory = {} # {"name': item}
@@ -11,3 +11,8 @@ class Entity:
     
     def __str__(self):
         return getattr(self, "description", "No comments lol")
+    
+    def repr_stats(self):
+        attrs = vars(self)
+        for k, v in attrs.items():
+            print(f"{k}: {str(v)}")

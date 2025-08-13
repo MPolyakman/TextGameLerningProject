@@ -1,7 +1,7 @@
 from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
-from items.UseObjects import Item, Door
+from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
 from events import MoveEvent
 
 from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
@@ -32,10 +32,25 @@ class Game:
 
     def handle_turn(self, player_action): 
         action, object = player_action.split(" ")
+        player = self.character_system.player
         match action:
             case "move":
-                event = MoveEvent(self.char_sys.player, object)
+                event = MoveEvent(player, object)
                 self.event_dispatcher.emit(event)
+            case "use":
+                if object in player.inventory.keys():
+                    self.event_dispatcher.emit(player.inventory[object].use(player))
+            case "inspect":
+                match object:
+                    case "room":
+                        print(player.current_room)
+                    case "yourself":
+                        print(player)
+                    case "stats":
+                        print((player.repr_stats()))
+                    case _:
+                        if object in player.inventory.keys():
+                            print(player.inventory[object])
 
     def draw_map(self):
         map = ""
@@ -56,6 +71,11 @@ class Game:
                             map += "---"
                         elif isinstance(obstacle, Door):
                             map += "-D-"
+                        obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                        if obstacle == None:
+                            map += "---"
+                        elif isinstance(obstacle, Door):
+                            map += "-D-"
                     else:
                         map += "   "
                     if self.map_system.map.coordinates[(x,y)].south.next_room != None:
@@ -65,6 +85,11 @@ class Game:
             map += '\n'
             for x in range(min_x, max_x + 1):
                 if x in previous_line:
+                    obstacle = self.map_system.map.coordinates[(x,y)].south.obstacle
+                    if obstacle == None:
+                        map += "|   "
+                    elif isinstance(obstacle, Door):
+                        map += "D   "
                     obstacle = self.map_system.map.coordinates[(x,y)].south.obstacle
                     if obstacle == None:
                         map += "|   "
@@ -88,3 +113,4 @@ class Game:
             if "exit" in player_action:
                 break
             self.handle_turn(player_action)
+            
