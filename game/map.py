@@ -46,7 +46,7 @@ class Room:
     
     def __str__(self, max_distance = 4, distance = 0):
         items = [str(item) for item in self.items.values()]
-        description = self.description + f"Предметы в комнате: {items}"
+        description = self.name + self.description + f"Предметы в комнате: {items}"
         return description
         """Возвращается в уже просмотренные комнаты во время обхода графа"""
         # for direction in directions: # Собирает описание с соседних комнат/тайлов если между ними нету препятсвие или есть другая видимость (для больших комнат)

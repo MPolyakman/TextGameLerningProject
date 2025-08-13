@@ -9,7 +9,7 @@ class Item():
         self.description = description
 
     def __str__(self) -> str:
-        return self.name+ getattr(self, "description", "")
+        return self.name + getattr(self, "description", "")
     
 class Object():
     def __init__(self, name: str, description = '', hp = 2000):

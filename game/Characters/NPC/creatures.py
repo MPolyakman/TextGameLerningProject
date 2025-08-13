@@ -11,3 +11,8 @@ class Entity:
     
     def __str__(self):
         return getattr(self, "description", "No comments lol")
+    
+    def repr_stats(self):
+        attrs = vars(self)
+        for k, v in attrs.items():
+            print(f"{k}: {str(v)}")

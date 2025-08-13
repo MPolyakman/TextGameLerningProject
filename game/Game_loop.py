@@ -43,8 +43,13 @@ class Game:
                 match object:
                     case "room":
                         print(char_sys.player.current_room)
+                    case "yourself":
+                        print(char_sys.player)
+                    case "stats":
+                        print((char_sys.player.repr_stats()))
                     case _:
-                        print(char_sys.player.inventory[object])
+                        if object in char_sys.player.inventory.keys():
+                            print(char_sys.player.inventory[object])
 
     def draw_map(self):
         map = ""
