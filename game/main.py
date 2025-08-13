@@ -44,6 +44,5 @@ def main():
     #                 print(f"{d} - {n_r.name} ")
     #     print()
 
-if __name__ = "__main__":
+if __name__ == "__main__":
     main()
-    
