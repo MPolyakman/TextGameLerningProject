@@ -13,7 +13,9 @@ rules = '''
 '''
 
 def descr(obj):
-    prompt = f'Исходя из следующего описания, которое дано, опиши этот объект, используй русский язык, не более 75 слов: {obj}'
+    prompt = f'''Исходя из следующего описания, которое дано, опиши этот объект, по шаблону: "Название предмета - имя объекта
+    Описание самого предмета
+    Описание его состояния", используй русский язык, не более 75 слов: {obj}'''
     description = ollama.chat(
     model='llama3:instruct',
     messages=[
@@ -34,7 +36,6 @@ def condition(mes: str, obj):
         str_to_prompt(prompt)
     ])
     return cond
-
 
 
 response = ollama.chat(

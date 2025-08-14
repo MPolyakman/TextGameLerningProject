@@ -55,11 +55,7 @@ def condition_str_to_dict (self, prompt: str):
                     pass 
             setattr(self, key, value)    
 
-import ollama
-import numpy as np
-from typing import List
-
-def context_checker(prompt: str, messages: list[str]) -> bool:
+def context_check(prompt: str, messages: list[str]) -> bool:
     if not messages:
         return True  
     try:
