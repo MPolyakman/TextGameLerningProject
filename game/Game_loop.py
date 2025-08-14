@@ -2,7 +2,7 @@ from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
 from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
-from events import MoveEvent
+from events import MoveEvent, SayEvent
 
 from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
 
@@ -31,7 +31,13 @@ class Game:
         self.player = Player(player_name, position = position)
 
     def handle_turn(self, player_action): 
-        action, object = player_action.split(" ")
+        input = player_action.split(" ")
+        if len(input) == 2:
+            action, object = input
+        elif len(input) == 3:
+            action, object, recepient = input
+        else:
+            print("некоректный ввод")
         player = self.character_system.player
         match action:
             case "move":
@@ -51,6 +57,10 @@ class Game:
                     case _:
                         if object in player.inventory.keys():
                             print(player.inventory[object])
+            case "say_to":
+                npc = self.character_system.characters[object]
+                event = SayEvent(player, object, npc)
+                self.event_dispatcher.emit(event)
 
     def draw_map(self):
         map = ""

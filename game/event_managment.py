@@ -137,7 +137,7 @@ class CharactersSystem:
     def __init__(self, event_dispatcher, player_name = "Default_name"):
         self.event_dispatcher = event_dispatcher
         self.player = Player(player_name)
-        self.characters = {}
+        self.characters = {} #имя: объект_ентити
 
     def spawn(self, event):
         entity = event.char
@@ -156,11 +156,33 @@ class CharactersSystem:
 class InteractionSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
+        self.interaction = None
+
+        on_say = self.on_say
+        self.event_dispatcher.subscribe(SayEvent, on_say)
+
+    def on_say(self, event):
+        speaker = event.speaker
+        message = event.words
+        recepient = event.recepient
+        if self.alone:
+            self.interaction = Interaction([speaker, recepient])
+        else:
+            if speaker not in self.interaction.chars:
+                self.interaction.join(speaker)
+            if recepient not in self.interaction.chars:
+                self.interaction.join(recepient)
+        speaker.say(message, recepient)
 
     def start_interaction(self, chars: list):
-        interaction = Interaction(chars)
-        while len(interaction.chars) > 1:
-            pass
+        self.interaction = Interaction(chars)
+        
+    def alone(self) -> bool:
+        if self.interaction is None:
+            return True
+        if len(self.interaction.chars) < 2:
+            return True
+        return False
 
 
 

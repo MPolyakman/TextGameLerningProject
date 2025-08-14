@@ -17,6 +17,3 @@ class Interaction:
             self.chars.remove(char)
             return True
         return False
-    
-    def remember(self, char):
-        pass
