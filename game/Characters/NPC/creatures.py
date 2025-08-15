@@ -1,3 +1,5 @@
+from events import Event, GiveItemEvent
+
 class Entity:
     def __init__(self, name, max_health = 100, position = None):
         self.name = name
@@ -8,6 +10,10 @@ class Entity:
         self.alive = True
         self.description = ""
         self.game_log = ''
+
+    def give(self, item, target) -> Event:
+        event = GiveItemEvent(self, item, target)
+        return event
     
     def __str__(self):
         return getattr(self, "description", "No comments lol")

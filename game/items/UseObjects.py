@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 from events import Event, ChangeCharacteristicEvent
 
 class Item():
-    def __init__(self, name: str, description = ''):
+    def __init__(self, name: str, hp = 100, description = ''):
         self.name = name
         self.description = description
 
@@ -19,7 +19,13 @@ class Object():
         self.hp = hp
 
     def __str__(self) -> str:
-        return getattr(self, "description", "")
+        return self.name + getattr(self, "description", "")
+    
+class StorageObj(Object):
+    def __init__(self, name: str, description = '', hp = 2000):
+        super().__init__(name, description, hp)
+        items = {}
+
     
 class Obstacle(Object):
     def __init__(self, name, description = "", hp = 5000, visibility_through = False):
@@ -45,8 +51,8 @@ class UseItem(Item):
         pass
 
 class CharacteristicsItem(UseItem):
-    def __init__(self, name, changes = dict(), description = ""):
-        super().__init__(name, description)
+    def __init__(self, name, hp = 10, changes = dict(), description = ""):
+        super().__init__(name, hp, description)
         self.changes = changes
 
     def use(self, char) -> Event:

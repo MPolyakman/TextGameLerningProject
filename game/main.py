@@ -13,7 +13,7 @@ def main():
     player = Player("Goobert Simpleton")
     start = Room("starting_room")
     door = Door("default door","Master key")
-    medkit = CharacteristicsItem("medkit", {"hp": 40, "max_hp": 10})
+    medkit = CharacteristicsItem("medkit", 10, {"hp": 40, "max_hp": 10})
     items = [medkit]
     
 
