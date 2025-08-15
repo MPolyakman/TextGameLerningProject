@@ -1,8 +1,8 @@
 from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
-from items.UseObjects import Item, Door
-from events import MoveEvent
+from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
+from events import MoveEvent, SayEvent, GiveItemEvent
 
 from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
 
@@ -27,15 +27,40 @@ class Game:
         self.item_system = item_system
         self.map_system = map_system
 
-        position = self.map_system.map.rooms['starting_room']
-        self.player = Player(player_name, position = position)
-
     def handle_turn(self, player_action): 
-        action, object = player_action.split(" ")
+        input = player_action.split(" ")
+        if len(input) == 2:
+            action, object = input
+        elif len(input) == 3:
+            action, object, recepient = input
+        else:
+            print("некоректный ввод")
+            return
+        player = self.character_system.player
         match action:
             case "move":
-                event = MoveEvent(self.char_sys.player, object)
+                event = MoveEvent(player, object)
                 self.event_dispatcher.emit(event)
+            case "use":
+                if object in player.inventory.keys():
+                    self.event_dispatcher.emit(player.inventory[object].use(player))
+            case "inspect":
+                match object:
+                    case "room":
+                        print(player.current_room)
+                    case "yourself":
+                        print(player)
+                    case "stats":
+                        print((player.repr_stats()))
+                    case _:
+                        if object in player.inventory.keys():
+                            print(player.inventory[object])
+            case "say_to":
+                npc = self.character_system.characters[recepient]
+                self.character_system.player.say(object, npc)
+            case "give":
+                npc = self.character_system.characters[recepient]
+                player.give(player.inventory[object], npc)
 
     def draw_map(self):
         map = ""
@@ -50,8 +75,9 @@ class Game:
                         map += "𓀠"
                     else:
                         map += "▇"
-                    if self.map_system.map.coordinates[(x,y)].east.next_room != None:
-                        obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                    path = self.map_system.map.coordinates[(x,y)].east.next_room
+                    obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
+                    if path != None:
                         if obstacle == None:
                             map += "---"
                         elif isinstance(obstacle, Door):
@@ -88,3 +114,4 @@ class Game:
             if "exit" in player_action:
                 break
             self.handle_turn(player_action)
+            

@@ -45,11 +45,14 @@ class Room:
         return False
     
     def __str__(self, max_distance = 4, distance = 0):
-        description = self.description
-        for direction in directions: # Собирает описание с соседних комнат/тайлов если между ними нету препятсвие или есть другая видимость (для больших комнат)
-            if getattr(self, direction).next_room != None and (getattr(self, direction).obstacle == None or getattr(self, direction).visible_through == True) and distance <= max_distance:
-                description += getattr(self, direction).next_room.__str__(distance + 1)
-        return self.name + description
+        items = [str(item) for item in self.items.values()]
+        description = self.name + self.description + f"Предметы в комнате: {items}"
+        return description
+        """Возвращается в уже просмотренные комнаты во время обхода графа"""
+        # for direction in directions: # Собирает описание с соседних комнат/тайлов если между ними нету препятсвие или есть другая видимость (для больших комнат)
+        #     if getattr(self, direction).next_room != None and (getattr(self, direction).obstacle == None or getattr(self, direction).obstacle.visible_through == True) and distance <= max_distance:
+        #         description += getattr(self, direction).next_room.__str__(distance = distance + 1)
+        # return self.name + description
  
 class Graph:
     def __init__(self):

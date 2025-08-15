@@ -1,13 +1,25 @@
 # Event-Based systems
-
 from random import shuffle, choice, random
 from collections import deque
 
 from Characters.NPC.creatures import Entity
+from Characters.NPC.NPC import NPC
 from Characters.player import Player
-from items.UseObjects import Item, Door, Key
+from items.UseObjects import Item, UseItem, Door, Key, Object, Obstacle
 from map import Path, Room, Graph
-from events import Event, MoveEvent, TryOpenDoor
+from events import (Event,
+            MoveEvent,
+            TryOpenDoor,
+            ChangeCharacteristicEvent,
+            SetCharacteristicEvent,
+            DeathEvent,
+            SayEvent,
+            SpawnEntityEvent,
+            AttackEvent,
+            GiveItemEvent,
+            TakeItemEvent,
+            PutItemEvent)
+from interactions import Interaction
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -32,14 +44,29 @@ class ItemSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
 
-    def put_item(self, item, room):
-        room.items.append(item)
+        on_give = self.give_item
+        on_put = self.put_item
+        on_take = self.take_item
 
-    def on_take_item(self, item, char):
-        char.inventory[item.name] = item
+        self.event_dispatcher.subscribe(TakeItemEvent, on_take)
+        self.event_dispatcher.subscribe(PutItemEvent, on_put)
+        self.event_dispatcher.subscribe(GiveItemEvent, on_give)
 
-    def on_use_item(self, item):
-        self.event_dispatcher.emit(f"use_{item.name}") 
+    def put_item(self, event):
+        if event.item.name in event.char.inventory.keys():
+            event.place.items[event.item.name] = event.char.inventory.pop(event.item.name)
+            return True
+        return False
+
+    def take_item(self, event):
+        if event.item.name in event.char.current_room.items.keys():
+            event.char.inventory[event.item.name] = event.place.items.pop(event.item.name)
+            return True
+        return False
+
+    def give_item(self, event):
+        event.recepient.inventory[event.item.name] = event.gifter.inventory[event.item.name]
+
 
 
 
@@ -61,43 +88,69 @@ class MovingSystem:
             print('no_way')
             return False
         if target_path.obstacle != None:
-            print(f"На пути стоит препятсвие")
             if isinstance(target_path.obstacle, Door):
                 if target_path.obstacle.locked:
                     event = TryOpenDoor(move.character, target_path.obstacle)
                     print(f'{str(target_path.obstacle)}')
                     self.event_dispatcher.emit(event)
+                else:
+                    self.on_set_position(move.character, target_path.next_room)
+                    return True
+            elif isinstance(target_path.obstacle, Obstacle):
+                print(f"На пути стоит препятсвие {str(target_path.obstacle)}")
+                return False
         else:
             self.on_set_position(move.character, target_path.next_room)
-            return True
 
 
 
 class ActionSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
-        on_try_open_door = self.try_to_open_door
-        self.event_dispatcher.subscribe(TryOpenDoor, on_try_open_door)
 
-    def affect_health(self, entity, points: int):
-        entity.hp += points
-        if entity.hp > entity.max_hp:
-            entity.hp = entity.max_hp
-        if entity.hp <= 0:
-            entity.hp = 0
-            entity.die()
-    
+        on_try_open_door = self.try_to_open_door
+        on_chage_characteristics = self.change_characteristics
+        on_die = self.die
+
+        self.event_dispatcher.subscribe(TryOpenDoor, on_try_open_door)
+        self.event_dispatcher.subscribe(ChangeCharacteristicEvent, on_chage_characteristics)
+        self.event_dispatcher.subscribe(DeathEvent, on_die)
+
+    def change_characteristics(self, event: ChangeCharacteristicEvent):
+        str = ""
+        for attr, value in event.changes.items():
+            setattr(event.char, attr, getattr(event.char, attr, 0) + value)
+            str += f"{attr} изменился на {value}"
+            if event.char.hp <= 0:
+                event.char.hp = 0
+                death = DeathEvent(event.char)
+                self.event_dispatcher.emit(death)
+        return str
+
+    def set_characteristics(self, event: SetCharacteristicEvent):
+        str = ""
+        for attr, value in event.changes.items():
+            setattr(event.char, attr, value)
+            str += (f"{attr} теперь равен {value}")
+        if event.char.hp <= 0:
+            event.char.hp = 0
+            death = DeathEvent(event.char)
+            self.event_dispatcher.emit(death)
+        return str
+
     def die(self, entity):
         entity.alive = False
         entity.description += "Существо мертво."
+        print(f"{entity.name} погибло")
 
     def try_to_open_door(self, event):
-        for item in event.character.inventory:
+        for item in event.character.inventory.values():
             if isinstance(item, Key):
                 if item.name == event.door.key_name:
                     event.door.locked = False
                     print(f"дверь была открыта с помощью {item.name}")
-        print("Дверь заперта")
+                    return
+        print("Дверь не получилось открыть")
 
 
 
@@ -105,7 +158,66 @@ class CharactersSystem:
     def __init__(self, event_dispatcher, player_name = "Default_name"):
         self.event_dispatcher = event_dispatcher
         self.player = Player(player_name)
-        self.characters = {}
+        self.characters = {} #имя: объект_ентити
+
+    def spawn(self, event):
+        entity = event.char
+        room = event.room
+        entity.current_room = room
+
+    def generate_entity(self, entity_type) -> Entity:
+        entity_type = entity_type
+        n = len(self.characters)
+        new_char = entity_type(f"entity_{n}")
+        self.characters[f"entity_{n}"] = new_char
+        return new_char
+
+
+
+class InteractionSystem:
+    def __init__(self, event_dispatcher):
+        self.event_dispatcher = event_dispatcher
+        self.interaction = Interaction([])
+
+        on_say = self.on_say
+        self.event_dispatcher.subscribe(SayEvent, on_say)
+
+    def alone(self) -> bool:
+        if self.interaction is None or len(self.interaction.chars) < 2:
+            return True
+        return False
+
+    def on_say(self, event):
+        speaker = event.speaker
+        message = event.words
+        recepient = event.recepient
+        if self.alone:
+            self.interaction = Interaction([speaker, recepient])
+        else:
+            if speaker not in self.interaction.chars:
+                self.interaction.join(speaker)
+            if recepient not in self.interaction.chars:
+                self.interaction.join(recepient)
+        for c in self.interaction.chars:
+            if isinstance(c, NPC):
+                c.listen(message, speaker)
+        
+    def on_attack(self, event):
+        attacker = event.attacker
+        weapon = event.weapon
+        defender = event.defender
+        if self.alone:
+            self.interaction = Interaction([attacker, defender])
+        else:
+            if attacker not in self.interaction.chars:
+                self.interaction.join(attacker)
+            if defender not in self.interaction.chars:
+                self.interaction.join(defender)
+         
+        #место для дполнительной логики обработки атаки 
+
+        attack_result = ChangeCharacteristicEvent(defender, {"hp": -10})
+        self.event_dispatcher.emit(attack_result)
 
 
 
@@ -118,19 +230,19 @@ class MapSystem:
         self.map.rooms[room.name] = room
     
     def add_edge(self, from_room: Room, direction, to_room: Room, door = None):
-        from_path = Path(to_room, door)
-        to_path = Path(from_room, door)
         direction = direction.lower()
-        from_room_slot_free = getattr(from_room, direction).next_room is None
-        to_room_slot_free = getattr(to_room, opposite[direction]).next_room is None
+        from_room_slot_free = getattr(from_room, direction).next_room == None
+        to_room_slot_free = getattr(to_room, opposite[direction]).next_room == None
         if direction in directions and from_room_slot_free and to_room_slot_free:
+            from_path = Path(to_room, door)
+            to_path = Path(from_room, door)
             from_room.add_path(from_path, direction)
             to_room.add_path(to_path, opposite[direction])
             return True
         return False
     
 
-    def generate_graph(self, rooms: list, doors: list):
+    def generate_graph(self, rooms: list, doors: list, items: list):
         shuffle(rooms)
         starting_room = [r for r in rooms if r.name == "starting_room"][0]
         self.map.coordinates[(0, 0)] = starting_room
@@ -142,7 +254,7 @@ class MapSystem:
         x, y = 0, 0
 
         while rooms:
-            r = choice(rooms)
+            r = rooms[0]
             direct = choice(directions)
             node = choice(list(self.map.rooms.values()))
             x, y = (self.map.room_coordinates[node])
@@ -166,6 +278,10 @@ class MapSystem:
                     occupied_coords.add((x,y))
                     self.map.room_coordinates[r] = (x, y)
                     self.map.coordinates[(x, y)] = r
+                    chance = random()
+                    if chance <= 0.8:
+                        itm = choice(items)
+                        r.items[itm.name] = itm
 
     def calculate_coordinates(self): # НЕ РАБОТАЕТ!!!
         # поиск точки отсчета графа 

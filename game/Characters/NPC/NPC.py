@@ -1,4 +1,4 @@
-from creatures import Entity
+from Characters.NPC.creatures import Entity
 import ollama
 from aistuff.aifunс import fix_mes
 

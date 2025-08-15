@@ -1,0 +1,8 @@
+__pycache__/
+game/__pycache__
+game/aistuff/__pycache__/
+game/Characters/__pycache__/
+game/items/__pycache__/
+.vscode/
+game/.vscode/
+game/NPC/__pycache__/
