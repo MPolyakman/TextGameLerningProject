@@ -61,6 +61,10 @@ class Game:
             case "give":
                 npc = self.character_system.characters[recepient]
                 player.give(player.inventory[object], npc)
+            case "take":
+                player.take(object)
+            case "put":
+                player.put(object)
 
     def draw_map(self):
         map = ""
