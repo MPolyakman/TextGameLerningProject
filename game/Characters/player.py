@@ -2,15 +2,18 @@ from Characters.NPC.creatures import Entity
 from Characters.NPC.NPC import NPC
 from aistuff.aifunс import context_checker
 
+from events import SayEvent
+
 class Player(Entity):
     def __init__(self, name, position = None, max_health = 100):
         super().__init__(name, max_health)
         self.history = ''
 
     def say(self, mes: str, NPC: NPC):
-        if (context_checker(mes, NPC.history)):
-            return NPC.say(mes)
-        else:
-            return "Очень жаль, но я не понимаю о чем Вы говорите, можете сказать что-нибудь другое..."
+        return SayEvent(self, mes, NPC)
+        # if (context_checker(mes, NPC.history)):
+        #     return NPC.say(mes)
+        # else:
+        #     return "Очень жаль, но я не понимаю о чем Вы говорите, можете сказать что-нибудь другое..."
 
     

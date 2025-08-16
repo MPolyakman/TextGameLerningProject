@@ -2,6 +2,8 @@ from Characters.NPC.creatures import Entity
 import ollama
 from aistuff.aifunс import fix_mes
 
+from events import SayEvent
+
 sys_promptNPC = '''
 Вы — NPC в текстовой рогалик-игре.
 Ваша задача — вести диалог с игроком,
@@ -17,7 +19,7 @@ class NPC(Entity):
         self.biography = sys_promptNPC + biography
         self.history = []
         
-    def say(self, message):
+    def say(self, speaker, message):
         messages = []
         messages.append({'role': 'system', 'content': self.biography})
         if (len(self.history) > 0):
@@ -28,6 +30,4 @@ class NPC(Entity):
         ans = fix_mes(ans)
         self.history.append(message)
         self.history.append(f'Вы: {ans}')
-        return ans
-    
-    
+        return SayEvent(self, ans, speaker)

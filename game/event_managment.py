@@ -152,6 +152,15 @@ class ActionSystem:
                     return
         print("Дверь не получилось открыть")
 
+    def on_attack(self, event):
+        if isinstance(event.defender, Entity):
+            return
+        
+        # место для дополнительной логики обработки атаки
+
+        attack_result = ChangeCharacteristicEvent(event.defender, {"hp": -10})
+        self.event_dispatcher.emit(attack_result)
+
 
 
 class CharactersSystem:
@@ -180,7 +189,9 @@ class InteractionSystem:
         self.interaction = Interaction([])
 
         on_say = self.on_say
+        on_attack = self.on_attack
         self.event_dispatcher.subscribe(SayEvent, on_say)
+        self.event_dispatcher.subscribe(AttackEvent, on_attack)
 
     def alone(self) -> bool:
         if self.interaction is None or len(self.interaction.chars) < 2:
@@ -191,33 +202,34 @@ class InteractionSystem:
         speaker = event.speaker
         message = event.words
         recepient = event.recepient
-        if self.alone:
-            self.interaction = Interaction([speaker, recepient])
-        else:
-            if speaker not in self.interaction.chars:
-                self.interaction.join(speaker)
-            if recepient not in self.interaction.chars:
-                self.interaction.join(recepient)
+        self.start_interaction_if_alone(event)
         for c in self.interaction.chars:
             if isinstance(c, NPC):
-                c.listen(message, speaker)
+                c.say(speaker, message)
         
     def on_attack(self, event):
+        if not isinstance(event.defender, Entity):
+            return
+        self.start_interaction_if_alone(event)
         attacker = event.attacker
         weapon = event.weapon
         defender = event.defender
-        if self.alone:
-            self.interaction = Interaction([attacker, defender])
-        else:
-            if attacker not in self.interaction.chars:
-                self.interaction.join(attacker)
-            if defender not in self.interaction.chars:
-                self.interaction.join(defender)
-         
+
         #место для дполнительной логики обработки атаки 
 
         attack_result = ChangeCharacteristicEvent(defender, {"hp": -10})
         self.event_dispatcher.emit(attack_result)
+
+    def dismiss_if_alone(self):
+        if self.alone():
+            self.interaction = Interaction([])
+
+    def start_interaction_if_alone(self, event):
+        if self.alone():
+            self.interaction = Interaction([])
+        for attr in vars(event).values():
+            if isinstance(attr, Entity):
+                self.interaction.join(attr)
 
 
 

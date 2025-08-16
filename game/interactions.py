@@ -1,3 +1,5 @@
+from events import LeaveInteractionEvent
+
 class Interaction:
     def __init__(self, chars: list):
         self.chars = chars
@@ -15,5 +17,4 @@ class Interaction:
     def leave(self, char):
         if char in self.chars:
             self.chars.remove(char)
-            return True
-        return False
+            return LeaveInteractionEvent(char)
