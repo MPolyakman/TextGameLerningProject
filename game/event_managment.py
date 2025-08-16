@@ -53,19 +53,19 @@ class ItemSystem:
         self.event_dispatcher.subscribe(GiveItemEvent, on_give)
 
     def put_item(self, event):
-        if event.item.name in event.char.inventory.keys():
-            event.place.items[event.item.name] = event.char.inventory.pop(event.item.name)
+        if event.item_name in event.char.inventory.keys():
+            event.place.items[event.item_name] = event.char.inventory.pop(event.item_name)
             return True
         return False
 
     def take_item(self, event):
         if event.item.name in event.char.current_room.items.keys():
-            event.char.inventory[event.item.name] = event.place.items.pop(event.item.name)
+            event.char.inventory[event.item_name] = event.place.items.pop(event.item_name)
             return True
         return False
 
     def give_item(self, event):
-        event.recepient.inventory[event.item.name] = event.gifter.inventory[event.item.name]
+        event.recepient.inventory[event.item_name] = event.gifter.inventory[event.item_name]
 
 
 

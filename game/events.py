@@ -51,19 +51,19 @@ class AttackEvent(Event):
         self.defender = defender
 
 class GiveItemEvent(Event):
-    def __init__(self, gifter, item, recepient):
+    def __init__(self, gifter, item_name: str, recepient):
         self.gifter = gifter
-        self.item = item
+        self.item_name = item_name
         self.recepient = recepient
 
 class PutItemEvent(Event):
-    def __init__(self, char, item, place):
+    def __init__(self, char, item_name: str, place):
         self.char = char
-        self.item = item
+        self.item_name = item_name
         self.place = place
 
 class TakeItemEvent(Event):
-    def __init__(self, char, item, place):
+    def __init__(self, char, item_name: str, place):
         self.char = char
-        self.item = item
+        self.item_name = item_name
         self.place = place
