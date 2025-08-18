@@ -4,7 +4,7 @@ from Characters.player import Player
 from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
 from events import MoveEvent, SayEvent, GiveItemEvent
 
-from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
+from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem, InteractionSystem
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -13,6 +13,7 @@ class Game:
     def __init__(self,
                  event_dispatcher: EventDispatcher,
                  character_system: CharactersSystem,
+                 interaction_system: InteractionSystem,
                  moving_system: MovingSystem,
                  action_system: ActionSystem,
                  item_system: ItemSystem,
@@ -22,6 +23,7 @@ class Game:
         self.event_dispatcher = event_dispatcher
 
         self.character_system = character_system
+        self.interaction_system = interaction_system
         self.moving_system = moving_system
         self.action_system = action_system
         self.item_system = item_system
@@ -29,10 +31,15 @@ class Game:
 
     def handle_turn(self, player_action): 
         input = player_action.split(" ")
-        if len(input) == 2:
+        input_len = len(input)
+        if input_len == 2:
             action, object = input
-        elif len(input) == 3:
+        elif input_len == 3:
             action, object, recepient = input
+        elif input_len > 3:
+            action = input[0]
+            recepient = input[-1]
+            list = input[1:-1]
         else:
             print("некоректный ввод")
             return
@@ -55,9 +62,13 @@ class Game:
                     case _:
                         if object in player.inventory.keys():
                             print(player.inventory[object])
-            case "say_to":
+            case "say":
+                if input_len > 3:
+                    message = " ".join(list)
+                else:
+                    message = object
                 npc = self.character_system.characters[recepient]
-                self.character_system.player.say(object, npc)
+                self.event_dispatcher.emit(self.character_system.player.say(message, npc))
             case "give":
                 npc = self.character_system.characters[recepient]
                 player.give(player.inventory[object], npc)
@@ -65,6 +76,7 @@ class Game:
                 player.take(object)
             case "put":
                 player.put(object)
+
 
     def draw_map(self):
         map = ""

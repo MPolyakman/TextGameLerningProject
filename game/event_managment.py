@@ -184,7 +184,7 @@ class CharactersSystem:
 
 
 class InteractionSystem:
-    def __init__(self, event_dispatcher):
+    def __init__(self, event_dispatcher: EventDispatcher):
         self.event_dispatcher = event_dispatcher
         self.interaction = Interaction([])
 
@@ -204,8 +204,8 @@ class InteractionSystem:
         recepient = event.recepient
         self.start_interaction_if_alone(event)
         for c in self.interaction.chars:
-            if isinstance(c, NPC):
-                c.listen_and_decide(speaker, message)
+            if  not c == speaker: 
+                self.event_dispatcher.emit(c.listen_and_decide(speaker, message))
         
     def on_attack(self, event):
         if not isinstance(event.defender, Entity):

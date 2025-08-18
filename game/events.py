@@ -68,6 +68,10 @@ class TakeItemEvent(Event):
         self.item_name = item_name
         self.place = place
 
+class JoinInteractionEvent(Event):
+    def __init__(self, char):
+        self.char = char
+
 class LeaveInteractionEvent(Event):
     def __init__(self, char):
         self.char = char

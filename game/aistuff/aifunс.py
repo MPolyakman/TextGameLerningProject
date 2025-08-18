@@ -65,7 +65,7 @@ def context_check(prompt: str, messages: list[str]) -> bool:
         similarity = np.dot(prompt_embedding, context_embedding) / (
             np.linalg.norm(prompt_embedding) * np.linalg.norm(context_embedding)
         )
-        threshold = 0.635 
+        threshold = 0.350
         print(f"Сходство: {similarity:.3f}")
         return similarity >= threshold
     except Exception as e:

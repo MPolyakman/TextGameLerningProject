@@ -1,7 +1,7 @@
 from events import Event, GiveItemEvent, TakeItemEvent, PutItemEvent
 
 class Entity:
-    def __init__(self, name, max_health = 100, position = None):
+    def __init__(self, name,  position = None, max_health = 100):
         self.name = name
         self.current_room = position
         self.inventory = {} # {"name': item}
