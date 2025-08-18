@@ -15,4 +15,5 @@ class Player(Entity):
         # else:
         #     return "Очень жаль, но я не понимаю о чем Вы говорите, можете сказать что-нибудь другое..."
 
-    
+    def listen_and_decide(self, speaker, message):
+        print(f"{speaker.name}: {message}")

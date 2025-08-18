@@ -1,7 +1,6 @@
 from Characters.NPC.creatures import Entity
 import ollama
 from aistuff.aifunс import context_check, fix_mes
-import player
 from events import SayEvent
 
 sys_promptNPC = '''
@@ -31,14 +30,8 @@ class NPC(Entity):
         return SayEvent(self, ans, speaker)
     
     def listen_and_decide(self, speaker, mes):
-        if (isinstance(speaker, player.Player)):
-            if (context_check(mes, self.history)):
-                self.history.append(f'Игрок: {mes}')
-                return self.say(speaker)
-            else:
-                SayEvent(self, "Очень жаль, но я не понимаю, что и о чем Вы говорите", speaker)
-        else:
+        if (context_check(mes, self.history)):
             self.history.append(f'{speaker.name}: {mes}')
             return self.say(speaker)
-            
-
+        else:
+            return SayEvent(self, "Очень жаль, но я не понимаю, что и о чем Вы говорите", speaker)
