@@ -1,7 +1,7 @@
 from Characters.NPC.creatures import Entity
 import ollama
-from aistuff.aifunс import fix_mes
-
+from aistuff.aifunс import context_check, fix_mes
+import player
 from events import SayEvent
 
 sys_promptNPC = '''
@@ -19,15 +19,26 @@ class NPC(Entity):
         self.biography = sys_promptNPC + biography
         self.history = []
         
-    def say(self, speaker, message):
+    def say(self, speaker):
         messages = []
         messages.append({'role': 'system', 'content': self.biography})
         if (len(self.history) > 0):
             messages.append({'role': 'system', 'content': " ".join(self.history)})
-        messages.append({'role': 'system', 'content': message})
         btw = ollama.chat(model='llama3:instruct', messages=messages)
         ans = btw['message']['content']
         ans = fix_mes(ans)
-        self.history.append(message)
         self.history.append(f'Вы: {ans}')
         return SayEvent(self, ans, speaker)
+    
+    def listen_and_decide(self, speaker, mes):
+        if (isinstance(speaker, player.Player)):
+            if (context_check(mes, self.history)):
+                self.history.append(f'Игрок: {mes}')
+                return self.say(speaker)
+            else:
+                SayEvent(self, "Очень жаль, но я не понимаю, что и о чем Вы говорите", speaker)
+        else:
+            self.history.append(f'{speaker.name}: {mes}')
+            return self.say(speaker)
+            
+

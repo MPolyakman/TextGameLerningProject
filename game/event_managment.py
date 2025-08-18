@@ -205,7 +205,7 @@ class InteractionSystem:
         self.start_interaction_if_alone(event)
         for c in self.interaction.chars:
             if isinstance(c, NPC):
-                c.say(speaker, message)
+                c.listen_and_decide(speaker, message)
         
     def on_attack(self, event):
         if not isinstance(event.defender, Entity):

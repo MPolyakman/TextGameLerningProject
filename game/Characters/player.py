@@ -1,6 +1,5 @@
 from Characters.NPC.creatures import Entity
 from Characters.NPC.NPC import NPC
-from aistuff.aifunс import context_checker
 
 from events import SayEvent
 
