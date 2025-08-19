@@ -14,6 +14,9 @@ class Interaction:
         self.dialog_log[char] = ''
         return True
     
+    def dialog_log_upd(self, char, words):
+        self.dialog_log[char] += words + '\n'
+    
     def leave(self, char):
         if char in self.chars:
             self.chars.remove(char)
