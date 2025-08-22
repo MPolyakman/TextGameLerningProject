@@ -74,8 +74,6 @@ class ItemSystem:
             
 
 
-
-
 class MovingSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
@@ -83,6 +81,7 @@ class MovingSystem:
         self.event_dispatcher.subscribe(MoveEvent, on_move)
 
     def on_set_position(self, entity, room):
+        room.chars[entity.name] = entity.current_room.chars.pop(entity.name)
         entity.current_room = room
 
     def on_move(self, move):

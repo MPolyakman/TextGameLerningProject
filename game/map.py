@@ -30,7 +30,8 @@ class Room:
         
         self.name = name              
         self.items = {}
-        self.description = ""
+        self.chars = {}
+        self.description = description
 
         self.north = Path(north_room, north_obstacle) # <Room объект, Door объект>
         self.east = Path(east_room, east_obstacle)

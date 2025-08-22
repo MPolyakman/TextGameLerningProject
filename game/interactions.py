@@ -3,12 +3,13 @@ from events import LeaveInteractionEvent
 class Interaction:
     def __init__(self, chars: list):
         self.chars = chars
+        self.room = chars[0].current_room
         self.dialog_log = {}
         for c in chars:
             self.dialog_log[c] = ''
     
     def join(self, char):
-        if char in self.chars:
+        if char in self.chars or char.current_roomis is not self.room:
             return False
         self.chars.append(char)
         self.dialog_log[char] = ''
