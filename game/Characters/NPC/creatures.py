@@ -10,6 +10,7 @@ class Entity:
         self.alive = True
         self.description = ""
         self.game_log = ''
+        self.intelligence_bool = False
 
     def give(self, item_name, target) -> Event:
         event = GiveItemEvent(self, item_name, target)

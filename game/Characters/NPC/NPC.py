@@ -16,6 +16,7 @@ class NPC(Entity):
     def __init__(self, name, position, max_health, biography):
         super().__init__(name, position, max_health)
         self.biography = sys_promptNPC + biography
+        self.intelligence_bool = True
         self.history = []
         
     def say(self, speaker):

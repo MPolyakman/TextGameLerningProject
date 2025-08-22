@@ -209,6 +209,7 @@ class InteractionSystem:
         message = event.words
         recepient = event.recepient
         self.start_interaction_if_alone(event)
+        self.interaction.dialog_log_upd(speaker, message)
         for c in self.interaction.chars:
             if  not c == speaker: 
                 self.event_dispatcher.emit(c.listen_and_decide(speaker, message))
