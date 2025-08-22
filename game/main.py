@@ -11,8 +11,8 @@ from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSys
 
 def main():
     dungeon = Graph()
-    player = Player("Goobert Simpleton")
     start = Room("starting_room")
+    player = Player("Goobert Simpleton", position=start)
     door = Door("default door","Master key")
     medkit = CharacteristicsItem("medkit", 10, {"hp": 40, "max_hp": 10})
     items = [medkit]
@@ -26,7 +26,7 @@ def main():
     char_sys = CharactersSystem(dispatcher)
     char_sys.player = player
     char_sys.characters[npc0.name] = npc0
-    interaction_sys = InteractionSystem(dispatcher)
+    interaction_sys = InteractionSystem(dispatcher, player)
     map_sys = MapSystem(dispatcher, dungeon)
 
     char_sys.player.current_room = start

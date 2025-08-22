@@ -1,4 +1,4 @@
-from events import Event, GiveItemEvent, TakeItemEvent, PutItemEvent
+from events import Event, GiveItemEvent, TakeItemEvent, PutItemEvent, LeaveInteractionEvent
 
 class Entity:
     def __init__(self, name,  position = None, max_health = 100):
@@ -23,6 +23,9 @@ class Entity:
     def put(self, item_name):
         if self.current_room != None and item_name in self.inventory.keys():
             return PutItemEvent(self, item_name, self.current_room)
+        
+    def leave(self):
+        return LeaveInteractionEvent(self.name)
     
     def __str__(self):
         return getattr(self, "description", "No comments lol")

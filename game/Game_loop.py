@@ -81,6 +81,8 @@ class Game:
                 self.event_dispatcher.emit(player.take(object))
             case "put":
                 self.event_dispatcher.emit(player.put(object))
+            case "leave":
+                self.event_dispatcher.emit(player.leave())
 
 
     def draw_map(self):

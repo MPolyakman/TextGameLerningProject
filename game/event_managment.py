@@ -18,7 +18,8 @@ from events import (Event,
             AttackEvent,
             GiveItemEvent,
             TakeItemEvent,
-            PutItemEvent)
+            PutItemEvent,
+            LeaveInteractionEvent)
 from interactions import Interaction
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
@@ -81,7 +82,11 @@ class MovingSystem:
         self.event_dispatcher.subscribe(MoveEvent, on_move)
 
     def on_set_position(self, entity, room):
-        room.chars[entity.name] = entity.current_room.chars.pop(entity.name)
+        room.chars[entity.name] = entity
+        try:
+            entity.current_room.chars.pop(entity.name)
+        except:
+            pass
         entity.current_room = room
 
     def on_move(self, move):
@@ -189,14 +194,16 @@ class CharactersSystem:
 
 
 class InteractionSystem:
-    def __init__(self, event_dispatcher: EventDispatcher):
+    def __init__(self,  event_dispatcher: EventDispatcher, player: Player):
         self.event_dispatcher = event_dispatcher
-        self.interaction = Interaction([])
+        self.interaction = Interaction(player, [])
 
         on_say = self.on_say
         on_attack = self.on_attack
+        on_leave = self.leave_interaction
         self.event_dispatcher.subscribe(SayEvent, on_say)
         self.event_dispatcher.subscribe(AttackEvent, on_attack)
+        self.event_dispatcher.subscribe(LeaveInteractionEvent, on_leave)
 
     def alone(self) -> bool:
         if self.interaction is None or len(self.interaction.chars) < 2:
@@ -228,14 +235,21 @@ class InteractionSystem:
 
     def dismiss_if_alone(self):
         if self.alone():
-            self.interaction = Interaction([])
+            self.interaction.chars = []
+            self.interaction.room = None
 
     def start_interaction_if_alone(self, event):
         if self.alone():
-            self.interaction = Interaction([])
+            self.interaction.chars = []
+            self.interaction.room = self.interaction.player.current_room
         for attr in vars(event).values():
             if isinstance(attr, Entity):
                 self.interaction.join(attr)
+
+    def leave_interaction(self, event):
+        if self.interaction.leave(event.char_name):
+            return f"{event.char_name} has left interaction"
+        return f"No such person {event.char_name} in interaction"
 
 
 

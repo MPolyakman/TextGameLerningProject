@@ -73,5 +73,5 @@ class JoinInteractionEvent(Event):
         self.char = char
 
 class LeaveInteractionEvent(Event):
-    def __init__(self, char):
-        self.char = char
+    def __init__(self, char_name):
+        self.char_name = char_name
