@@ -59,6 +59,11 @@ class Game:
                         print(player)
                     case "stats":
                         print((player.repr_stats()))
+                    case "chars":
+                        for i in self.character_system.characters.values():
+                            print((i.repr_stats()))
+                    case "map":
+                        self.map_system.map.repr()
                     case _:
                         if object in player.inventory.keys():
                             print(player.inventory[object])
@@ -71,11 +76,11 @@ class Game:
                 self.event_dispatcher.emit(self.character_system.player.say(message, npc))
             case "give":
                 npc = self.character_system.characters[recepient]
-                player.give(player.inventory[object], npc)
+                self.event_dispatcher.emit(player.give(object, npc))
             case "take":
-                player.take(object)
+                self.event_dispatcher.emit(player.take(object))
             case "put":
-                player.put(object)
+                self.event_dispatcher.emit(player.put(object))
 
 
     def draw_map(self):

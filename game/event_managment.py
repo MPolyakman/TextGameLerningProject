@@ -36,7 +36,9 @@ class EventDispatcher:
     def emit(self, event):
         event_type = type(event)
         for listener in self.listeners.get(event_type, []):
-            listener(event)
+            output = (listener(event))
+            if isinstance(output, str):
+                print(output)
 
 
 
@@ -55,17 +57,21 @@ class ItemSystem:
     def put_item(self, event):
         if event.item_name in event.char.inventory.keys():
             event.place.items[event.item_name] = event.char.inventory.pop(event.item_name)
-            return True
-        return False
+            return f"You have put {event.item_name} on ground"
+        return f"You don't have {event.item_name}"
 
     def take_item(self, event):
-        if event.item.name in event.char.current_room.items.keys():
+        if event.item_name in event.char.current_room.items.keys():
             event.char.inventory[event.item_name] = event.place.items.pop(event.item_name)
-            return True
-        return False
+            return f'{event.char.name} took {event.item_name}'
+        return f'No {event.item_name} in this room'
 
     def give_item(self, event):
-        event.recepient.inventory[event.item_name] = event.gifter.inventory[event.item_name]
+        if event.item_name in event.gifter.inventory.keys():
+            event.recepient.inventory[event.item_name] = event.gifter.inventory[event.item_name]
+            return f'{event.gifter.name} gave {event.item_name} to {event.recepient.name}'
+        return  f"{event.gifter.name} doesn't has {event.item_name}"
+            
 
 
 
@@ -141,16 +147,16 @@ class ActionSystem:
     def die(self, entity):
         entity.alive = False
         entity.description += "Существо мертво."
-        print(f"{entity.name} погибло")
+        return (f"{entity.name} погибло")
 
     def try_to_open_door(self, event):
         for item in event.character.inventory.values():
             if isinstance(item, Key):
                 if item.name == event.door.key_name:
                     event.door.locked = False
-                    print(f"дверь была открыта с помощью {item.name}")
-                    return
-        print("Дверь не получилось открыть")
+                    return (f"дверь была открыта с помощью {item.name}")
+                    
+        return ("Дверь не получилось открыть")
 
     def on_attack(self, event):
         if isinstance(event.defender, Entity):

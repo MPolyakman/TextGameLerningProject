@@ -59,4 +59,15 @@ class Graph:
         self.rooms = {}
         self.coordinates = {}
         self.room_coordinates = {}
+
+    def repr(self):
+        for r in self.rooms.values():
+            print(f"{r.name} - {self.room_coordinates[r]}:")
+            for d in directions:
+                n_r = getattr(r, d, None)
+                if n_r != None:
+                    if n_r.next_room != None:
+                        n_r = n_r.next_room
+                        print(f"{d} - {n_r.name} ")
+        print()
     

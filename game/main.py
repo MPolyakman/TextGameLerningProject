@@ -41,15 +41,5 @@ def main():
     test_game = Game(dispatcher, char_sys, interaction_sys, mov_sys, act_sys, item_sys, map_sys)
     test_game.start_game()
 
-    # for r in dungeon.rooms.values():
-    #     print(f"{r.name} - {dungeon.room_coordinates[r]}:")
-    #     for d in directions:
-    #         n_r = getattr(r, d, None)
-    #         if n_r != None:
-    #             if n_r.next_room != None:
-    #                 n_r = n_r.next_room
-    #                 print(f"{d} - {n_r.name} ")
-    #     print()
-
 if __name__ == "__main__":
     main()

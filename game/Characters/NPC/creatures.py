@@ -11,8 +11,8 @@ class Entity:
         self.description = ""
         self.game_log = ''
 
-    def give(self, item, target) -> Event:
-        event = GiveItemEvent(self, item, target)
+    def give(self, item_name, target) -> Event:
+        event = GiveItemEvent(self, item_name, target)
         return event
     
     def take(self, item_name):
