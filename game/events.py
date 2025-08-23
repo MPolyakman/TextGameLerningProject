@@ -1,7 +1,6 @@
+# НИЧЕГО СЮДА НЕ ИМПОРТИРОВАТЬ
+
 #Список ивентов 
-
-from abc import ABC, abstractmethod
-
 class Event:
     pass
 
@@ -45,3 +44,34 @@ class SayEvent(Event):
         self.words = words
         self.recepient = recepient
 
+class AttackEvent(Event):
+    def __init__(self, attacker, weapon, defender):
+        self.attacker = attacker
+        self.weapon = weapon
+        self.defender = defender
+
+class GiveItemEvent(Event):
+    def __init__(self, gifter, item_name: str, recepient):
+        self.gifter = gifter
+        self.item_name = item_name
+        self.recepient = recepient
+
+class PutItemEvent(Event):
+    def __init__(self, char, item_name: str, place):
+        self.char = char
+        self.item_name = item_name
+        self.place = place
+
+class TakeItemEvent(Event):
+    def __init__(self, char, item_name: str, place):
+        self.char = char
+        self.item_name = item_name
+        self.place = place
+
+class JoinInteractionEvent(Event):
+    def __init__(self, char):
+        self.char = char
+
+class LeaveInteractionEvent(Event):
+    def __init__(self, char_name):
+        self.char_name = char_name

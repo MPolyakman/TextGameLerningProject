@@ -2,9 +2,9 @@ from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
 from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
-from events import MoveEvent, SayEvent
+from events import MoveEvent, SayEvent, GiveItemEvent
 
-from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem
+from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem, InteractionSystem
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -13,6 +13,7 @@ class Game:
     def __init__(self,
                  event_dispatcher: EventDispatcher,
                  character_system: CharactersSystem,
+                 interaction_system: InteractionSystem,
                  moving_system: MovingSystem,
                  action_system: ActionSystem,
                  item_system: ItemSystem,
@@ -22,22 +23,26 @@ class Game:
         self.event_dispatcher = event_dispatcher
 
         self.character_system = character_system
+        self.interaction_system = interaction_system
         self.moving_system = moving_system
         self.action_system = action_system
         self.item_system = item_system
         self.map_system = map_system
 
-        position = self.map_system.map.rooms['starting_room']
-        self.player = Player(player_name, position = position)
-
     def handle_turn(self, player_action): 
         input = player_action.split(" ")
-        if len(input) == 2:
+        input_len = len(input)
+        if input_len == 2:
             action, object = input
-        elif len(input) == 3:
+        elif input_len == 3:
             action, object, recepient = input
+        elif input_len > 3:
+            action = input[0]
+            recepient = input[-1]
+            list = input[1:-1]
         else:
             print("некоректный ввод")
+            return
         player = self.character_system.player
         match action:
             case "move":
@@ -54,13 +59,31 @@ class Game:
                         print(player)
                     case "stats":
                         print((player.repr_stats()))
+                    case "chars":
+                        for i in self.character_system.characters.values():
+                            print((i.repr_stats()))
+                    case "map":
+                        self.map_system.map.repr()
                     case _:
                         if object in player.inventory.keys():
                             print(player.inventory[object])
-            case "say_to":
-                npc = self.character_system.characters[object]
-                event = SayEvent(player, object, npc)
-                self.event_dispatcher.emit(event)
+            case "say":
+                if input_len > 3:
+                    message = " ".join(list)
+                else:
+                    message = object
+                npc = self.character_system.characters[recepient]
+                self.event_dispatcher.emit(self.character_system.player.say(message, npc))
+            case "give":
+                npc = self.character_system.characters[recepient]
+                self.event_dispatcher.emit(player.give(object, npc))
+            case "take":
+                self.event_dispatcher.emit(player.take(object))
+            case "put":
+                self.event_dispatcher.emit(player.put(object))
+            case "leave":
+                self.event_dispatcher.emit(player.leave())
+
 
     def draw_map(self):
         map = ""

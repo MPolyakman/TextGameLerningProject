@@ -3,8 +3,9 @@ from random import shuffle, choice, random
 from collections import deque
 
 from Characters.NPC.creatures import Entity
+from Characters.NPC.NPC import NPC
 from Characters.player import Player
-from items.UseObjects import Item, Door, Key, Object, Obstacle
+from items.UseObjects import Item, UseItem, Door, Key, Object, Obstacle
 from map import Path, Room, Graph
 from events import (Event,
             MoveEvent,
@@ -13,7 +14,12 @@ from events import (Event,
             SetCharacteristicEvent,
             DeathEvent,
             SayEvent,
-            SpawnEntityEvent)
+            SpawnEntityEvent,
+            AttackEvent,
+            GiveItemEvent,
+            TakeItemEvent,
+            PutItemEvent,
+            LeaveInteractionEvent)
 from interactions import Interaction
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
@@ -31,9 +37,9 @@ class EventDispatcher:
     def emit(self, event):
         event_type = type(event)
         for listener in self.listeners.get(event_type, []):
-            listener(event)
-
-
+            output = (listener(event))
+            if isinstance(output, str):
+                print(output)
 
 
 
@@ -41,19 +47,32 @@ class ItemSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
 
-    def put_item(self, item, room):
-        room.items.append(item)
+        on_give = self.give_item
+        on_put = self.put_item
+        on_take = self.take_item
 
-    def on_take_item(self, item, char):
-        char.inventory[item.name] = item
+        self.event_dispatcher.subscribe(TakeItemEvent, on_take)
+        self.event_dispatcher.subscribe(PutItemEvent, on_put)
+        self.event_dispatcher.subscribe(GiveItemEvent, on_give)
 
-    def on_use_item(self, item):
-        self.event_dispatcher.emit(f"use_{item.name}") 
+    def put_item(self, event):
+        if event.item_name in event.char.inventory.keys():
+            event.place.items[event.item_name] = event.char.inventory.pop(event.item_name)
+            return f"You have put {event.item_name} on ground"
+        return f"You don't have {event.item_name}"
 
-    def give_item(self, gifter: Entity, item: Item, recepient: Entity):
-        recepient.inventory[item.name] = gifter.inventory[item.name]
+    def take_item(self, event):
+        if event.item_name in event.char.current_room.items.keys():
+            event.char.inventory[event.item_name] = event.place.items.pop(event.item_name)
+            return f'{event.char.name} took {event.item_name}'
+        return f'No {event.item_name} in this room'
 
-
+    def give_item(self, event):
+        if event.item_name in event.gifter.inventory.keys():
+            event.recepient.inventory[event.item_name] = event.gifter.inventory[event.item_name]
+            return f'{event.gifter.name} gave {event.item_name} to {event.recepient.name}'
+        return  f"{event.gifter.name} doesn't has {event.item_name}"
+            
 
 
 class MovingSystem:
@@ -63,6 +82,11 @@ class MovingSystem:
         self.event_dispatcher.subscribe(MoveEvent, on_move)
 
     def on_set_position(self, entity, room):
+        room.chars[entity.name] = entity
+        try:
+            entity.current_room.chars.pop(entity.name)
+        except:
+            pass
         entity.current_room = room
 
     def on_move(self, move):
@@ -90,8 +114,6 @@ class MovingSystem:
 
 
 
-
-
 class ActionSystem:
     def __init__(self, event_dispatcher):
         self.event_dispatcher = event_dispatcher
@@ -109,27 +131,45 @@ class ActionSystem:
         for attr, value in event.changes.items():
             setattr(event.char, attr, getattr(event.char, attr, 0) + value)
             str += f"{attr} изменился на {value}"
+            if event.char.hp <= 0:
+                event.char.hp = 0
+                death = DeathEvent(event.char)
+                self.event_dispatcher.emit(death)
         return str
-            
 
     def set_characteristics(self, event: SetCharacteristicEvent):
+        str = ""
         for attr, value in event.changes.items():
             setattr(event.char, attr, value)
-            print(f"{attr} теперь равен {value}")
+            str += (f"{attr} теперь равен {value}")
+        if event.char.hp <= 0:
+            event.char.hp = 0
+            death = DeathEvent(event.char)
+            self.event_dispatcher.emit(death)
+        return str
 
     def die(self, entity):
         entity.alive = False
         entity.description += "Существо мертво."
-        print(f"{entity.name} погибло")
+        return (f"{entity.name} погибло")
 
     def try_to_open_door(self, event):
         for item in event.character.inventory.values():
             if isinstance(item, Key):
                 if item.name == event.door.key_name:
                     event.door.locked = False
-                    print(f"дверь была открыта с помощью {item.name}")
-                    return
-        print("Дверь не получилось открыть")
+                    return (f"дверь была открыта с помощью {item.name}")
+                    
+        return ("Дверь не получилось открыть")
+
+    def on_attack(self, event):
+        if isinstance(event.defender, Entity):
+            return
+        
+        # место для дополнительной логики обработки атаки
+
+        attack_result = ChangeCharacteristicEvent(event.defender, {"hp": -10})
+        self.event_dispatcher.emit(attack_result)
 
 
 
@@ -154,35 +194,62 @@ class CharactersSystem:
 
 
 class InteractionSystem:
-    def __init__(self, event_dispatcher):
+    def __init__(self,  event_dispatcher: EventDispatcher, player: Player):
         self.event_dispatcher = event_dispatcher
-        self.interaction = None
+        self.interaction = Interaction(player, [])
 
         on_say = self.on_say
+        on_attack = self.on_attack
+        on_leave = self.leave_interaction
         self.event_dispatcher.subscribe(SayEvent, on_say)
+        self.event_dispatcher.subscribe(AttackEvent, on_attack)
+        self.event_dispatcher.subscribe(LeaveInteractionEvent, on_leave)
+
+    def alone(self) -> bool:
+        if self.interaction is None or len(self.interaction.chars) < 2:
+            return True
+        return False
 
     def on_say(self, event):
         speaker = event.speaker
         message = event.words
         recepient = event.recepient
-        if self.alone:
-            self.interaction = Interaction([speaker, recepient])
-        else:
-            if speaker not in self.interaction.chars:
-                self.interaction.join(speaker)
-            if recepient not in self.interaction.chars:
-                self.interaction.join(recepient)
-        speaker.say(message, recepient)
-
-    def start_interaction(self, chars: list):
-        self.interaction = Interaction(chars)
+        self.start_interaction_if_alone(event)
+        self.interaction.dialog_log_upd(speaker, message)
+        for c in self.interaction.chars:
+            if  not c == speaker: 
+                self.event_dispatcher.emit(c.listen_and_decide(speaker, message))
         
-    def alone(self) -> bool:
-        if self.interaction is None:
-            return True
-        if len(self.interaction.chars) < 2:
-            return True
-        return False
+    def on_attack(self, event):
+        if not isinstance(event.defender, Entity):
+            return
+        self.start_interaction_if_alone(event)
+        attacker = event.attacker
+        weapon = event.weapon
+        defender = event.defender
+
+        #место для дполнительной логики обработки атаки 
+
+        attack_result = ChangeCharacteristicEvent(defender, {"hp": -10})
+        self.event_dispatcher.emit(attack_result)
+
+    def dismiss_if_alone(self):
+        if self.alone():
+            self.interaction.chars = []
+            self.interaction.room = None
+
+    def start_interaction_if_alone(self, event):
+        if self.alone():
+            self.interaction.chars = []
+            self.interaction.room = self.interaction.player.current_room
+        for attr in vars(event).values():
+            if isinstance(attr, Entity):
+                self.interaction.join(attr)
+
+    def leave_interaction(self, event):
+        if self.interaction.leave(event.char_name):
+            return f"{event.char_name} has left interaction"
+        return f"No such person {event.char_name} in interaction"
 
 
 

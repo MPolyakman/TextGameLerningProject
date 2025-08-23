@@ -6,7 +6,7 @@ def fix_mes(mes: str) -> str:
     red_mes = ollama.chat(
     model='llama3:instruct',
     messages=[
-        {'role': 'user', 'content': f'Ты знаешь русский язык на уровне носителя, исправь ошибки, чтобы оно звучало красиво и не теряло смысл: {mes}'}
+        {'role': 'user', 'content': f'Ты знаешь русский язык на уровне носителя, исправь ошибки, чтобы оно звучало красиво и не теряло смысл, не добавляй ничего лишнего: {mes}'}
     ])
     return red_mes['message']['content']
 
@@ -21,7 +21,7 @@ def reduce_mes(mes: str) -> str:
     messages=[
         {'role': 'user', 'content': f'''Ты профессиональный русскоязычный копирайтер,
         переформулируй всё сообщение так, чтобы основной посыл не потерялся,
-         но общий объём значительно уменьшился: {mes}'''}
+         но общий объём значительно уменьшился, не добавляй ничего: {mes}'''}
     ])
     return red_mes['message']['content']
 
@@ -55,11 +55,7 @@ def condition_str_to_dict (self, prompt: str):
                     pass 
             setattr(self, key, value)    
 
-import ollama
-import numpy as np
-from typing import List
-
-def context_checker(prompt: str, messages: list[str]) -> bool:
+def context_check(prompt: str, messages: list[str]) -> bool:
     if not messages:
         return True  
     try:
@@ -69,7 +65,7 @@ def context_checker(prompt: str, messages: list[str]) -> bool:
         similarity = np.dot(prompt_embedding, context_embedding) / (
             np.linalg.norm(prompt_embedding) * np.linalg.norm(context_embedding)
         )
-        threshold = 0.635 
+        threshold = 0.350
         print(f"Сходство: {similarity:.3f}")
         return similarity >= threshold
     except Exception as e:

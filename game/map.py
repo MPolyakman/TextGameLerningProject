@@ -30,7 +30,8 @@ class Room:
         
         self.name = name              
         self.items = {}
-        self.description = ""
+        self.chars = {}
+        self.description = description
 
         self.north = Path(north_room, north_obstacle) # <Room объект, Door объект>
         self.east = Path(east_room, east_obstacle)
@@ -59,4 +60,15 @@ class Graph:
         self.rooms = {}
         self.coordinates = {}
         self.room_coordinates = {}
+
+    def repr(self):
+        for r in self.rooms.values():
+            print(f"{r.name} - {self.room_coordinates[r]}:")
+            for d in directions:
+                n_r = getattr(r, d, None)
+                if n_r != None:
+                    if n_r.next_room != None:
+                        n_r = n_r.next_room
+                        print(f"{d} - {n_r.name} ")
+        print()
     
