@@ -28,9 +28,11 @@ class Entity:
         return LeaveInteractionEvent(self.name)
     
     def __str__(self):
-        return getattr(self, "description", "No comments lol")
+        return self.name + getattr(self, "description", "No comments lol")
     
     def repr_stats(self):
         attrs = vars(self)
+        out = ''
         for k, v in attrs.items():
-            print(f"{k}: {str(v)}")
+            out += (f"{k}: {str(v)}\n")
+        return out

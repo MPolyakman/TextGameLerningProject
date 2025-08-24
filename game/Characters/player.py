@@ -13,4 +13,4 @@ class Player(Entity):
         return SayEvent(self, mes, NPC)
     
     def listen_and_decide(self, speaker, message):
-        print(f"{speaker.name}: {message}")
+        return (f"{speaker.name}: {message}")

@@ -1,4 +1,5 @@
 from Game_loop import Game
+from GameAppTextual import GameApp
 
 from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
@@ -28,7 +29,6 @@ def main():
     char_sys.characters[npc0.name] = npc0
     interaction_sys = InteractionSystem(dispatcher, player)
     map_sys = MapSystem(dispatcher, dungeon)
-
     char_sys.player.current_room = start
 
     rooms = [start]
@@ -39,7 +39,9 @@ def main():
     map_sys.generate_graph(rooms, [door], items)
 
     test_game = Game(dispatcher, char_sys, interaction_sys, mov_sys, act_sys, item_sys, map_sys)
-    test_game.start_game()
+    
+    app = GameApp(game=test_game)
+    app.run()
 
 if __name__ == "__main__":
     main()

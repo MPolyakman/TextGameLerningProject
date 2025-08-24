@@ -22,6 +22,8 @@ from events import (Event,
             LeaveInteractionEvent)
 from interactions import Interaction
 
+from GameAppTextual import GameApp
+
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
 
@@ -38,8 +40,6 @@ class EventDispatcher:
         event_type = type(event)
         for listener in self.listeners.get(event_type, []):
             output = (listener(event))
-            if isinstance(output, str):
-                print(output)
 
 
 
@@ -92,23 +92,21 @@ class MovingSystem:
     def on_move(self, move):
         direction = move.direction.lower()
         if direction not in directions:
-            return False
+            return "Nope"
         target_path = getattr(move.character.current_room, direction)
         if target_path.next_room == None:
-            print('no_way')
-            return False
+            return "There is no path here"
         if target_path.obstacle != None:
             if isinstance(target_path.obstacle, Door):
                 if target_path.obstacle.locked:
                     event = TryOpenDoor(move.character, target_path.obstacle)
-                    print(f'{str(target_path.obstacle)}')
                     self.event_dispatcher.emit(event)
+                    return f'{str(target_path.obstacle)}'
                 else:
                     self.on_set_position(move.character, target_path.next_room)
-                    return True
+                    return f'moved {direction}'
             elif isinstance(target_path.obstacle, Obstacle):
-                print(f"На пути стоит препятсвие {str(target_path.obstacle)}")
-                return False
+                return f"На пути стоит препятсвие {str(target_path.obstacle)}"
         else:
             self.on_set_position(move.character, target_path.next_room)
 
