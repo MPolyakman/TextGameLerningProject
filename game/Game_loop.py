@@ -57,6 +57,7 @@ class Game:
         
         player = self.character_system.player
         self.UI_system.output["log"] = ''
+        self.UI_system.output["inspect"] = self.UI_system.room_view()
 
         match action:
             case "move":

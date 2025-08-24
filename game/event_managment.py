@@ -84,8 +84,10 @@ class MovingSystem:
         self.event_dispatcher.subscribe(MoveEvent, on_move)
 
     def on_set_position(self, entity, room):
-        room.chars[entity.name] = entity
+        if room == None:
+            return
         try:
+            room.chars[entity.name] = entity
             entity.current_room.chars.pop(entity.name)
         except:
             pass
@@ -376,23 +378,51 @@ class MapSystem:
 
 
 class UI_system:
-    def __init__(self, dispatcher: EventDispatcher):
+    def __init__(self, dispatcher: EventDispatcher, player: Player):
         self.dispatcher = dispatcher
         self.output = {"log": '', "main":"", "message":""}
+        self.player = player
 
         log = self.update_log
-        main = self.update_window
+        main = self.update_room
         message = self.update_message
 
         self.dispatcher.subscribe(UpdateLogEvent, log)
         self.dispatcher.subscribe(UpdateWindowEvent, main)
         self.dispatcher.subscribe(UpdateMessageEvent, message)
 
+    def room_view(self):
+        output = ''
+        room = self.player.current_room
+        if room.north.next_room != None:
+            output += " _____   _____\n"
+        else:
+            output += " _____________\n"
+        output += "|             |\n|             |\n"
+        if room.west.next_room != None:
+            output += " "
+        else:
+            output += "|"
+        output += "             "
+        if room.east.next_room != None:
+            output += " \n"
+        else:
+            output += "|\n"
+        output += "|             |\n"
+        if room.south.next_room == None:
+            output += "|_____________|\n"
+        else:
+            output += "|_____   _____|\n"
+        return output
+
     def update_log(self, event):
         self.output["log"] += event.message
     
-    def update_window(self, event):
+    def update_room(self, event):
         self.output["main"] = event.main
+
+    def update_inspect(self, event):
+        self.output["inspect"] = event.inspect
 
     def update_message(self, event):
         self.output["message"] = event.message

@@ -30,7 +30,7 @@ def main():
     interaction_sys = InteractionSystem(dispatcher, player)
     map_sys = MapSystem(dispatcher, dungeon)
     char_sys.player.current_room = start
-    UI_sys = UI_system(dispatcher)
+    UI_sys = UI_system(dispatcher, player)
 
     rooms = [start]
     for i in range(25):

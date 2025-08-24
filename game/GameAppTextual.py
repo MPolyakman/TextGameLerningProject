@@ -64,6 +64,7 @@ class GameApp(App):
     def on_mount(self) -> None:
         self.query_one(RichLog).write("Welcome to the game! Type 'exit' to quit.")
         self.update_map_display()
+        self.update_room_view()
         self.query_one(Input).focus()
 
     def on_input_submitted(self, message: Input.Submitted):
@@ -80,3 +81,7 @@ class GameApp(App):
     def update_map_display(self):
         map_content = self.game.draw_map()
         self.query_one("#inspect_view").update(map_content)
+
+    def update_room_view(self):
+        room_content = self.game.UI_system.room_view()
+        self.query_one("#room_view").update(room_content)
