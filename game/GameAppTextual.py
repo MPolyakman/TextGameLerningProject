@@ -4,7 +4,7 @@ from Game_loop import Game
 from textual import events
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer, Static, Input, RichLog
-from textual.containers import VerticalScroll, Horizontal
+from textual.containers import VerticalScroll, Horizontal, Vertical
 
 class GameApp(App):
     CSS = """
@@ -13,20 +13,30 @@ class GameApp(App):
     }
 
     #main_container {
+        layout: vertical;
+        height: 100%;
+    }
+    #windows_container {
         layout: horizontal;
-        height: 90%;
+        height: 60%;
+    }
+    #room_view {
+        width: 70%;
+        height: 100%;
+        border: round white;
+        overflow: auto;
     }
 
-    #map_view {
-        width: 50%;
+    #inspect_view {
+        width: 30%;
         height: 100%;
         border: round white;
         overflow: auto;
     }
 
     #game_log {
-        width: 50%;
-        height: 100%;
+        width: 100%;
+        height: 40%;
         border: round white;
         overflow: auto;
     }
@@ -43,15 +53,16 @@ class GameApp(App):
 
     def compose(self) -> ComposeResult:
         yield Header(name="AI Adventure")
-        with Horizontal(id="main_container"):
-            yield Static(id="map_view", name="Map")
+        with Vertical(id= "main_container"):
+            with Horizontal(id="windows_container"):
+                yield Static(id="room_view", name="Room")
+                yield Static(id="inspect_view", name="Inspect window")
             yield RichLog(id="game_log", name="Game Log")
             yield Input(placeholder="What do you want to do?")
         yield Footer()
 
     def on_mount(self) -> None:
         self.query_one(RichLog).write("Welcome to the game! Type 'exit' to quit.")
-        self.game.set_output_log(self.query_one(RichLog))
         self.update_map_display()
         self.query_one(Input).focus()
 
@@ -63,7 +74,9 @@ class GameApp(App):
         else:
             self.game.handle_turn(command)
             self.update_map_display()
+        self.query_one(Input).clear()
+        self.query_one(RichLog).write(self.game.UI_system.output["log"])
 
     def update_map_display(self):
         map_content = self.game.draw_map()
-        self.query_one("#map_view").update(map_content)
+        self.query_one("#inspect_view").update(map_content)

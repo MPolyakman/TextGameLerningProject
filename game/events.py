@@ -1,77 +1,93 @@
-# НИЧЕГО СЮДА НЕ ИМПОРТИРОВАТЬ
+from dataclasses import dataclass
 
-#Список ивентов 
+# НИЧЕГО СЮДА бОЛЬШЕ НЕ ИМПОРТИРОВАТЬ
+
+# Список ивентов 
+
+@dataclass
 class Event:
     pass
 
+@dataclass
 class MoveEvent(Event):
-    def __init__(self, char, direction):
-        self.character = char
-        self.direction = direction
+    character: object
+    direction: str
 
+@dataclass
 class TryOpenDoor(Event):
-    def __init__(self, char, door):
-        self.character = char
-        self.door = door
+    character: object
+    door: object
 
+@dataclass
 class ChangeCharacteristicEvent(Event):
-    def __init__(self, char, changes: dict):
-        self.char = char
-        self.changes = changes
+    char: object
+    changes: dict
 
+@dataclass
 class SetCharacteristicEvent(Event):
-    def __init__(self, char, changes: dict):
-        self.char = char
-        self.changes = changes
+    char: object
+    changes: dict
 
+@dataclass
 class DeathEvent(Event):
-    def __init__(self, char):
-        self.char = char
+    char: object
 
+@dataclass
 class UseItemEvent(Event):
-    def __init__(self, char, item):
-        self.char = char
-        self.item = item
+    char: object
+    item: object
 
+@dataclass
 class SpawnEntityEvent(Event):
-    def __init__(self, char, room):
-        self.char = char
-        self.item = room
+    char: object
+    item: object
 
+@dataclass
 class SayEvent(Event):
-    def __init__(self, speaker, words: str, recepient):
-        self.speaker = speaker
-        self.words = words
-        self.recepient = recepient
+    speaker: object
+    words: str
+    recipient: object
 
+@dataclass
 class AttackEvent(Event):
-    def __init__(self, attacker, weapon, defender):
-        self.attacker = attacker
-        self.weapon = weapon
-        self.defender = defender
+    attacker: object
+    weapon: object
+    defender: object
 
+@dataclass
 class GiveItemEvent(Event):
-    def __init__(self, gifter, item_name: str, recepient):
-        self.gifter = gifter
-        self.item_name = item_name
-        self.recepient = recepient
+    gifter: object
+    item_name: str
+    recipient: object
 
+@dataclass
 class PutItemEvent(Event):
-    def __init__(self, char, item_name: str, place):
-        self.char = char
-        self.item_name = item_name
-        self.place = place
+    char: object
+    item_name: str
+    place: object
 
+@dataclass
 class TakeItemEvent(Event):
-    def __init__(self, char, item_name: str, place):
-        self.char = char
-        self.item_name = item_name
-        self.place = place
+    char: object
+    item_name: str
+    place: object
 
+@dataclass
 class JoinInteractionEvent(Event):
-    def __init__(self, char):
-        self.char = char
+    char: object
 
+@dataclass
 class LeaveInteractionEvent(Event):
-    def __init__(self, char_name):
-        self.char_name = char_name
+    char_name: str
+
+@dataclass
+class UpdateLogEvent(Event):
+    message: str
+
+@dataclass
+class UpdateWindowEvent(Event):
+    main: object
+
+@dataclass
+class UpdateMessageEvent(Event):
+    message: str

@@ -5,13 +5,14 @@ from Characters.player import Player
 from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
 from events import MoveEvent, SayEvent, GiveItemEvent
 
-from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem, InteractionSystem
-
-from textual import events
-from textual.app import App, ComposeResult
-from textual.widgets import Header, Footer, Static, Input, RichLog
-from textual.containers import VerticalScroll, Horizontal
-
+from event_managment import (EventDispatcher,
+                              ItemSystem,
+                                ActionSystem,
+                                  MovingSystem,
+                                    MapSystem,
+                                      CharactersSystem,
+                                        InteractionSystem,
+                                          UI_system)
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -25,7 +26,7 @@ class Game:
                  action_system: ActionSystem,
                  item_system: ItemSystem,
                  map_system: MapSystem,
-                 player_name = "Default name"):
+                 UI_system: UI_system):
 
         self.event_dispatcher = event_dispatcher
 
@@ -35,10 +36,7 @@ class Game:
         self.action_system = action_system
         self.item_system = item_system
         self.map_system = map_system
-        self.output_log = None
-
-    def set_output_log(self, output_log: RichLog):
-        self.output_log = output_log
+        self.UI_system = UI_system
 
     def handle_turn(self, player_action): 
         input_parts = player_action.lower().split(" ")
@@ -58,7 +56,7 @@ class Game:
                 recipient = input_parts[2]
         
         player = self.character_system.player
-        output = ""
+        self.UI_system.output["log"] = ''
 
         match action:
             case "move":
@@ -66,52 +64,50 @@ class Game:
                     event = MoveEvent(player, obj)
                     self.event_dispatcher.emit(event)
                 else:
-                    output = f"You can't move {obj}."
+                    self.UI_system.output['log'] = f"You can't move {obj}."
             case "use":
                 if obj in player.inventory:
                     self.event_dispatcher.emit(player.inventory[obj].use(player))
                 else:
-                    output = f"You don't have a {obj}."
+                    self.UI_system.output['log'] = f"You don't have a {obj}."
             case "inspect":
                 match obj:
                     case "room":
-                        output = str(player.current_room)
+                        self.UI_system.output['log'] = str(player.current_room)
                     case "yourself":
-                        output = str(player)
+                        self.UI_system.output['log'] = str(player)
                     case "stats":
-                        output = player.repr_stats()
+                        self.UI_system.output['log'] = player.repr_stats()
                     case "chars":
-                        output = "\n".join([i.repr_stats() for i in self.character_system.characters.values()])
+                        self.UI_system.output['log'] = "\n".join([i.repr_stats() for i in self.character_system.characters.values()])
                     case "":
-                        output = "What do you want to inspect?"
+                        self.UI_system.output['log'] = "What do you want to inspect?"
                     case _:
                         if obj in player.inventory:
-                            output = str(player.inventory[obj])
+                            self.UI_system.output['log'] = str(player.inventory[obj])
                         else:
-                            output = f"You don't have a {obj}."
+                            self.UI_system.output['log'] = f"You don't have a {obj}."
             case "say":
                 if recipient in self.character_system.characters:
                     npc = self.character_system.characters[recipient]
-                    output = self.event_dispatcher.emit(player.say(message, npc))
+                    self.event_dispatcher.emit(player.say(message, npc))
                 else:
-                    output = f"There is no one named {recipient} here."
+                     f"There is no one named {recipient} here."
             case "give":
                 if recipient in self.character_system.characters:
                     npc = self.character_system.characters[recipient]
-                    output = self.event_dispatcher.emit(player.give(obj, npc))
+                    self.event_dispatcher.emit(player.give(obj, npc))
                 else:
-                    output = f"There is no one named {recipient} here."
+                    self.UI_system.output['log'] =  f"There is no one named {recipient} here."
             case "take":
-                output = self.event_dispatcher.emit(player.take(obj))
+                self.event_dispatcher.emit(player.take(obj))
             case "put":
-                output =self.event_dispatcher.emit(player.put(obj))
+                self.UI_system.output['log'] =self.event_dispatcher.emit(player.put(obj))
             case "leave":
-                output =self.event_dispatcher.emit(player.leave())
+                self.event_dispatcher.emit(player.leave())
             case _:
-                output = "Unknown command."
+                self.UI_system.output['log'] = "Unknown command."
 
-        if output and self.output_log:
-            self.output_log.write(output)
 
     def draw_map(self):
         map_str = ""

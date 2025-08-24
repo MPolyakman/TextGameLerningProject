@@ -8,7 +8,7 @@ from Characters.player import Player
 from items.UseObjects import Item, Door, CharacteristicsItem
 from events import MoveEvent
 
-from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem, InteractionSystem
+from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem, InteractionSystem, UI_system
 
 def main():
     dungeon = Graph()
@@ -30,6 +30,7 @@ def main():
     interaction_sys = InteractionSystem(dispatcher, player)
     map_sys = MapSystem(dispatcher, dungeon)
     char_sys.player.current_room = start
+    UI_sys = UI_system(dispatcher)
 
     rooms = [start]
     for i in range(25):
@@ -38,7 +39,7 @@ def main():
 
     map_sys.generate_graph(rooms, [door], items)
 
-    test_game = Game(dispatcher, char_sys, interaction_sys, mov_sys, act_sys, item_sys, map_sys)
+    test_game = Game(dispatcher, char_sys, interaction_sys, mov_sys, act_sys, item_sys, map_sys, UI_sys)
     
     app = GameApp(game=test_game)
     app.run()
