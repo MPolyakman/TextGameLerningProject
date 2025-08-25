@@ -62,7 +62,8 @@ class ItemSystem:
         if event.item_name in event.char.inventory.keys():
             event.place.items[event.item_name] = event.char.inventory.pop(event.item_name)
             self.event_dispatcher.emit(UpdateLogEvent(message= f"You have put {event.item_name} on ground"))
-        return self.event_dispatcher.emit(UpdateLogEvent(message= f"You don't have {event.item_name}"))
+        else:
+            return self.event_dispatcher.emit(UpdateLogEvent(message= f"You don't have {event.item_name}"))
 
     def take_item(self, event):
         if event.item_name in event.char.current_room.items.keys():

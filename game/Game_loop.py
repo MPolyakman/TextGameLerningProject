@@ -106,7 +106,7 @@ class Game:
             case "take":
                 self.event_dispatcher.emit(player.take(obj))
             case "put":
-                self.UI_system.output['log'] =self.event_dispatcher.emit(player.put(obj))
+                self.event_dispatcher.emit(player.put(obj))
             case "leave":
                 self.event_dispatcher.emit(player.leave())
             case _:

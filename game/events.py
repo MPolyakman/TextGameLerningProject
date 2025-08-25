@@ -90,7 +90,7 @@ class UpdateRoomEvent(Event):
 
 @dataclass
 class UpdateInspectEvent(Event):
-    main: object
+    inspect: object
 
 
 @dataclass
