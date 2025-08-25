@@ -85,8 +85,13 @@ class UpdateLogEvent(Event):
     message: str
 
 @dataclass
-class UpdateWindowEvent(Event):
+class UpdateRoomEvent(Event):
     main: object
+
+@dataclass
+class UpdateInspectEvent(Event):
+    main: object
+
 
 @dataclass
 class UpdateMessageEvent(Event):

@@ -3,6 +3,8 @@
 from abc import ABC, abstractmethod
 
 from events import Event, ChangeCharacteristicEvent
+import procedure_descr as pd
+from aistuff.gamemaster import descr
 
 class Item():
     def __init__(self, name: str, hp = 100, description = ''):
@@ -35,6 +37,10 @@ class Obstacle(Object):
 class Door(Obstacle):
     def __init__(self,name, key_name, locked = True, hp = 3000, description = ''):
         super().__init__(name, description, hp, visibility_through=False)
+
+        if description == "":
+            description = descr(pd.random_specs(pd.door_specifications))
+
         self.locked = locked
         self.key_name = key_name
 

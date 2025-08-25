@@ -21,7 +21,8 @@ from events import (Event,
             PutItemEvent,
             LeaveInteractionEvent,
             UpdateLogEvent,
-            UpdateWindowEvent,
+            UpdateRoomEvent,
+            UpdateInspectEvent,
             UpdateMessageEvent
             )
 from interactions import Interaction
@@ -385,10 +386,12 @@ class UI_system:
 
         log = self.update_log
         main = self.update_room
+        inspect = self.update_inspect
         message = self.update_message
 
         self.dispatcher.subscribe(UpdateLogEvent, log)
-        self.dispatcher.subscribe(UpdateWindowEvent, main)
+        self.dispatcher.subscribe(UpdateRoomEvent, main)
+        self.dispatcher.subscribe(UpdateInspectEvent, inspect)
         self.dispatcher.subscribe(UpdateMessageEvent, message)
 
     def room_view(self):

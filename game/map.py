@@ -1,15 +1,21 @@
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
 
+import procedure_descr as pd
+from aistuff.gamemaster import descr
 # from items.UseObjects import Door
 from random import shuffle, choice
 from collections import deque
 
 class Path:
-    def __init__(self, next_room = None, door = None):
+    def __init__(self, next_room = None, door = None, description = ""):
+
+        if description == "" and next_room != None:
+            description = descr(pd.random_specs(pd.path_specifications))
+
         self.obstacle = door
         self.next_room = next_room
-        self.description = ''
+        self.description = description
         if door == None:
             self.visible_through = True
         else:
@@ -27,6 +33,9 @@ class Room:
                  west_room  = None, west_obstacle = None,
                  description = ''
                 ):
+        
+        if description == "":
+            description = descr(pd.random_specs(pd.room_specifications))
         
         self.name = name              
         self.items = {}

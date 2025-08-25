@@ -5,7 +5,7 @@ from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.NPC.NPC import NPC
 from Characters.player import Player
-from items.UseObjects import Item, Door, CharacteristicsItem
+from items.UseObjects import Item, Door, CharacteristicsItem, Key
 from events import MoveEvent
 
 from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem, InteractionSystem, UI_system
@@ -14,9 +14,10 @@ def main():
     dungeon = Graph()
     start = Room("starting_room")
     player = Player("Goobert Simpleton", position=start)
-    door = Door("default door","Master key")
+    door = Door("default door","master key")
+    key = Key("master key")
     medkit = CharacteristicsItem("medkit", 10, {"hp": 40, "max_hp": 10})
-    items = [medkit]
+    items = [medkit, key]
     npc0 = NPC("gleb", position =  start, max_health = 100, biography= "You are homless man living in this basement")
     
 
@@ -33,7 +34,7 @@ def main():
     UI_sys = UI_system(dispatcher, player)
 
     rooms = [start]
-    for i in range(25):
+    for i in range(2):
         room = Room(f'room{i}')
         rooms.append(room)
 

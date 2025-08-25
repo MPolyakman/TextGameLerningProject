@@ -1,5 +1,5 @@
 import ollama
-from aifunс import fix_mes, to_dict_prompt, str_to_prompt
+from aistuff.aifunс import fix_mes, to_dict_prompt, str_to_prompt
 
 rules = '''
 Привет, ты являешься игровым мастером в текстовой игре жанра rogulike -
@@ -38,14 +38,15 @@ def condition(mes: str, obj):
     return cond
 
 
-response = ollama.chat(
-    model='llama3:instruct',
-    messages=[
-        {'role': 'system', 'content': rules},
-        {'role': 'user', 'content': "Игрок запустил игру и вошел в первую комнату"}
-    ]
-)
-ans = response['message']['content']
-ans_fix=fix_mes(ans)
-print(ans)
-print(ans_fix)
+def start_text():
+    response= ollama.chat(
+        model='llama3:instruct',
+        messages=[
+            {'role': 'system', 'content': rules},
+            {'role': 'user', 'content': "Игрок запустил игру и вошел в первую комнату"}
+        ]
+    )
+    ans = response['message']['content']
+    ans_fix=fix_mes(ans)
+    print(ans)
+    print(ans_fix)

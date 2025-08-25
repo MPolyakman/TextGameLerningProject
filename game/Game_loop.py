@@ -4,6 +4,7 @@ from Characters.NPC.creatures import Entity
 from Characters.player import Player
 from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
 from events import MoveEvent, SayEvent, GiveItemEvent
+from aistuff.gamemaster import start_text
 
 from event_managment import (EventDispatcher,
                               ItemSystem,
@@ -37,6 +38,8 @@ class Game:
         self.item_system = item_system
         self.map_system = map_system
         self.UI_system = UI_system
+
+        self.first_message()
 
     def handle_turn(self, player_action): 
         input_parts = player_action.lower().split(" ")
@@ -156,4 +159,7 @@ class Game:
             map_str += line2 + "\n"
             
         return map_str
+    
+    def first_message(self):
+        self.UI_system.output["message"] = start_text()
 

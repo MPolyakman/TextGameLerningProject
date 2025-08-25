@@ -106,7 +106,7 @@ door_specifications = [
 "Со звонком"
 ]
 
-room_specificantions = [
+room_specifications = [
   [
     "Белая",
     "Серая",

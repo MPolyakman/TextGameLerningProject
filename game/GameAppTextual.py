@@ -74,9 +74,10 @@ class GameApp(App):
             self.exit("Thank you for playing.")
         else:
             self.game.handle_turn(command)
-            self.update_map_display()
         self.query_one(Input).clear()
         self.query_one(RichLog).write(self.game.UI_system.output["log"])
+        self.update_map_display()
+        self.update_room_view()
 
     def update_map_display(self):
         map_content = self.game.draw_map()
