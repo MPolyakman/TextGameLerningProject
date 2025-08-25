@@ -19,7 +19,11 @@ from events import (Event,
             GiveItemEvent,
             TakeItemEvent,
             PutItemEvent,
-            LeaveInteractionEvent)
+            LeaveInteractionEvent,
+            UpdateLogEvent,
+            UpdateWindowEvent,
+            UpdateMessageEvent
+            )
 from interactions import Interaction
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
@@ -37,9 +41,7 @@ class EventDispatcher:
     def emit(self, event):
         event_type = type(event)
         for listener in self.listeners.get(event_type, []):
-            output = (listener(event))
-            if isinstance(output, str):
-                print(output)
+            (listener(event))
 
 
 
@@ -58,20 +60,20 @@ class ItemSystem:
     def put_item(self, event):
         if event.item_name in event.char.inventory.keys():
             event.place.items[event.item_name] = event.char.inventory.pop(event.item_name)
-            return f"You have put {event.item_name} on ground"
-        return f"You don't have {event.item_name}"
+            self.event_dispatcher.emit(UpdateLogEvent(message= f"You have put {event.item_name} on ground"))
+        return self.event_dispatcher.emit(UpdateLogEvent(message= f"You don't have {event.item_name}"))
 
     def take_item(self, event):
         if event.item_name in event.char.current_room.items.keys():
             event.char.inventory[event.item_name] = event.place.items.pop(event.item_name)
-            return f'{event.char.name} took {event.item_name}'
-        return f'No {event.item_name} in this room'
+            self.event_dispatcher.emit(UpdateLogEvent(message=  f'{event.char.name} took {event.item_name}'))
+        self.event_dispatcher.emit(UpdateLogEvent(message=  f'No {event.item_name} in this room'))
 
     def give_item(self, event):
         if event.item_name in event.gifter.inventory.keys():
             event.recepient.inventory[event.item_name] = event.gifter.inventory[event.item_name]
-            return f'{event.gifter.name} gave {event.item_name} to {event.recepient.name}'
-        return  f"{event.gifter.name} doesn't has {event.item_name}"
+            self.event_dispatcher.emit(UpdateLogEvent(message=  f'{event.gifter.name} gave {event.item_name} to {event.recepient.name}'))
+        self.event_dispatcher.emit(UpdateLogEvent(message=   f"{event.gifter.name} doesn't has {event.item_name}"))
             
 
 
@@ -82,8 +84,10 @@ class MovingSystem:
         self.event_dispatcher.subscribe(MoveEvent, on_move)
 
     def on_set_position(self, entity, room):
-        room.chars[entity.name] = entity
+        if room == None:
+            return
         try:
+            room.chars[entity.name] = entity
             entity.current_room.chars.pop(entity.name)
         except:
             pass
@@ -92,23 +96,21 @@ class MovingSystem:
     def on_move(self, move):
         direction = move.direction.lower()
         if direction not in directions:
-            return False
+            self.event_dispatcher.emit(UpdateLogEvent(message=  "Nope"))
         target_path = getattr(move.character.current_room, direction)
         if target_path.next_room == None:
-            print('no_way')
-            return False
+            self.event_dispatcher.emit(UpdateLogEvent(message=  "There is no path here"))
         if target_path.obstacle != None:
             if isinstance(target_path.obstacle, Door):
                 if target_path.obstacle.locked:
                     event = TryOpenDoor(move.character, target_path.obstacle)
-                    print(f'{str(target_path.obstacle)}')
                     self.event_dispatcher.emit(event)
+                    self.event_dispatcher.emit(UpdateLogEvent(message=  f'{str(target_path.obstacle)}'))
                 else:
                     self.on_set_position(move.character, target_path.next_room)
-                    return True
+                    self.event_dispatcher.emit(UpdateLogEvent(message=  f'moved {direction}'))
             elif isinstance(target_path.obstacle, Obstacle):
-                print(f"На пути стоит препятсвие {str(target_path.obstacle)}")
-                return False
+                self.event_dispatcher.emit(UpdateLogEvent(message=  f"На пути стоит препятсвие {str(target_path.obstacle)}"))
         else:
             self.on_set_position(move.character, target_path.next_room)
 
@@ -135,7 +137,7 @@ class ActionSystem:
                 event.char.hp = 0
                 death = DeathEvent(event.char)
                 self.event_dispatcher.emit(death)
-        return str
+        self.event_dispatcher.emit(UpdateLogEvent(message=  str))
 
     def set_characteristics(self, event: SetCharacteristicEvent):
         str = ""
@@ -146,12 +148,12 @@ class ActionSystem:
             event.char.hp = 0
             death = DeathEvent(event.char)
             self.event_dispatcher.emit(death)
-        return str
+        self.event_dispatcher.emit(UpdateLogEvent(message=  str))
 
     def die(self, entity):
         entity.alive = False
         entity.description += "Существо мертво."
-        return (f"{entity.name} погибло")
+        self.event_dispatcher.emit(UpdateLogEvent(message=  (f"{entity.name} погибло")))
 
     def try_to_open_door(self, event):
         for item in event.character.inventory.values():
@@ -160,7 +162,7 @@ class ActionSystem:
                     event.door.locked = False
                     return (f"дверь была открыта с помощью {item.name}")
                     
-        return ("Дверь не получилось открыть")
+        self.event_dispatcher.emit(UpdateLogEvent(message=  ("Дверь не получилось открыть")))
 
     def on_attack(self, event):
         if isinstance(event.defender, Entity):
@@ -248,8 +250,8 @@ class InteractionSystem:
 
     def leave_interaction(self, event):
         if self.interaction.leave(event.char_name):
-            return f"{event.char_name} has left interaction"
-        return f"No such person {event.char_name} in interaction"
+            self.event_dispatcher.emit(UpdateLogEvent(message=  f"{event.char_name} has left interaction"))
+        self.event_dispatcher.emit(UpdateLogEvent(message=  f"No such person {event.char_name} in interaction"))
 
 
 
@@ -372,3 +374,55 @@ class MapSystem:
             
             serialized_rooms.append(room_data)
         return {'Graph': serialized_rooms}
+    
+
+
+class UI_system:
+    def __init__(self, dispatcher: EventDispatcher, player: Player):
+        self.dispatcher = dispatcher
+        self.output = {"log": '', "main":"", "message":""}
+        self.player = player
+
+        log = self.update_log
+        main = self.update_room
+        message = self.update_message
+
+        self.dispatcher.subscribe(UpdateLogEvent, log)
+        self.dispatcher.subscribe(UpdateWindowEvent, main)
+        self.dispatcher.subscribe(UpdateMessageEvent, message)
+
+    def room_view(self):
+        output = ''
+        room = self.player.current_room
+        if room.north.next_room != None:
+            output += " _____   _____\n"
+        else:
+            output += " _____________\n"
+        output += "|             |\n|             |\n"
+        if room.west.next_room != None:
+            output += " "
+        else:
+            output += "|"
+        output += "             "
+        if room.east.next_room != None:
+            output += " \n"
+        else:
+            output += "|\n"
+        output += "|             |\n"
+        if room.south.next_room == None:
+            output += "|_____________|\n"
+        else:
+            output += "|_____   _____|\n"
+        return output
+
+    def update_log(self, event):
+        self.output["log"] += event.message
+    
+    def update_room(self, event):
+        self.output["main"] = event.main
+
+    def update_inspect(self, event):
+        self.output["inspect"] = event.inspect
+
+    def update_message(self, event):
+        self.output["message"] = event.message

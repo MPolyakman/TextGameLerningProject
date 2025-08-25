@@ -1,10 +1,18 @@
+
 from map import Path, Room, Graph
 from Characters.NPC.creatures import Entity
 from Characters.player import Player
 from items.UseObjects import Item, Door, UseItem, CharacteristicsItem, Key
 from events import MoveEvent, SayEvent, GiveItemEvent
 
-from event_managment import EventDispatcher, ItemSystem, ActionSystem, MovingSystem, MapSystem, CharactersSystem, InteractionSystem
+from event_managment import (EventDispatcher,
+                              ItemSystem,
+                                ActionSystem,
+                                  MovingSystem,
+                                    MapSystem,
+                                      CharactersSystem,
+                                        InteractionSystem,
+                                          UI_system)
 
 opposite = {'north' : 'south', 'west': 'east', 'south': 'north', 'east': 'west'}
 directions = ['north', 'south', 'west', 'east']
@@ -18,7 +26,7 @@ class Game:
                  action_system: ActionSystem,
                  item_system: ItemSystem,
                  map_system: MapSystem,
-                 player_name = "Default name"):
+                 UI_system: UI_system):
 
         self.event_dispatcher = event_dispatcher
 
@@ -28,113 +36,124 @@ class Game:
         self.action_system = action_system
         self.item_system = item_system
         self.map_system = map_system
+        self.UI_system = UI_system
 
     def handle_turn(self, player_action): 
-        input = player_action.split(" ")
-        input_len = len(input)
-        if input_len == 2:
-            action, object = input
-        elif input_len == 3:
-            action, object, recepient = input
-        elif input_len > 3:
-            action = input[0]
-            recepient = input[-1]
-            list = input[1:-1]
-        else:
-            print("некоректный ввод")
-            return
+        input_parts = player_action.lower().split(" ")
+        input_len = len(input_parts)
+        
+        action = input_parts[0]
+        obj = ""
+        recipient = ""
+        
+        if input_len > 1:
+            obj = input_parts[1]
+        if input_len > 2:
+            if action == "say":
+                message = " ".join(input_parts[1:-1])
+                recipient = input_parts[-1]
+            else:
+                recipient = input_parts[2]
+        
         player = self.character_system.player
+        self.UI_system.output["log"] = ''
+        self.UI_system.output["inspect"] = self.UI_system.room_view()
+
         match action:
             case "move":
-                event = MoveEvent(player, object)
-                self.event_dispatcher.emit(event)
-            case "use":
-                if object in player.inventory.keys():
-                    self.event_dispatcher.emit(player.inventory[object].use(player))
-            case "inspect":
-                match object:
-                    case "room":
-                        print(player.current_room)
-                    case "yourself":
-                        print(player)
-                    case "stats":
-                        print((player.repr_stats()))
-                    case "chars":
-                        for i in self.character_system.characters.values():
-                            print((i.repr_stats()))
-                    case "map":
-                        self.map_system.map.repr()
-                    case _:
-                        if object in player.inventory.keys():
-                            print(player.inventory[object])
-            case "say":
-                if input_len > 3:
-                    message = " ".join(list)
+                if obj in directions:
+                    event = MoveEvent(player, obj)
+                    self.event_dispatcher.emit(event)
                 else:
-                    message = object
-                npc = self.character_system.characters[recepient]
-                self.event_dispatcher.emit(self.character_system.player.say(message, npc))
+                    self.UI_system.output['log'] = f"You can't move {obj}."
+            case "use":
+                if obj in player.inventory:
+                    self.event_dispatcher.emit(player.inventory[obj].use(player))
+                else:
+                    self.UI_system.output['log'] = f"You don't have a {obj}."
+            case "inspect":
+                match obj:
+                    case "room":
+                        self.UI_system.output['log'] = str(player.current_room)
+                    case "yourself":
+                        self.UI_system.output['log'] = str(player)
+                    case "stats":
+                        self.UI_system.output['log'] = player.repr_stats()
+                    case "chars":
+                        self.UI_system.output['log'] = "\n".join([i.repr_stats() for i in self.character_system.characters.values()])
+                    case "":
+                        self.UI_system.output['log'] = "What do you want to inspect?"
+                    case _:
+                        if obj in player.inventory:
+                            self.UI_system.output['log'] = str(player.inventory[obj])
+                        else:
+                            self.UI_system.output['log'] = f"You don't have a {obj}."
+            case "say":
+                if recipient in self.character_system.characters:
+                    npc = self.character_system.characters[recipient]
+                    self.event_dispatcher.emit(player.say(message, npc))
+                else:
+                     f"There is no one named {recipient} here."
             case "give":
-                npc = self.character_system.characters[recepient]
-                self.event_dispatcher.emit(player.give(object, npc))
+                if recipient in self.character_system.characters:
+                    npc = self.character_system.characters[recipient]
+                    self.event_dispatcher.emit(player.give(obj, npc))
+                else:
+                    self.UI_system.output['log'] =  f"There is no one named {recipient} here."
             case "take":
-                self.event_dispatcher.emit(player.take(object))
+                self.event_dispatcher.emit(player.take(obj))
             case "put":
-                self.event_dispatcher.emit(player.put(object))
+                self.UI_system.output['log'] =self.event_dispatcher.emit(player.put(obj))
             case "leave":
                 self.event_dispatcher.emit(player.leave())
+            case _:
+                self.UI_system.output['log'] = "Unknown command."
 
 
     def draw_map(self):
-        map = ""
+        map_str = ""
+        if not self.map_system.map.coordinates:
+            return "No map data."
+            
         x_values, y_values = zip(*self.map_system.map.coordinates.keys())
         min_x, max_x = min(x_values), max(x_values)
         min_y, max_y = min(y_values), max(y_values)
-        previous_line = []
-        for y in range(max_y, min_y-1, -1):
-            for x in range(min_x, max_x + 1):
-                if (x, y) in self.map_system.map.coordinates.keys():
-                    if self.map_system.map.coordinates[x,y] == self.character_system.player.current_room:
-                        map += "𓀠"
-                    else:
-                        map += "▇"
-                    path = self.map_system.map.coordinates[(x,y)].east.next_room
-                    obstacle = self.map_system.map.coordinates[(x,y)].east.obstacle
-                    if path != None:
-                        if obstacle == None:
-                            map += "---"
-                        elif isinstance(obstacle, Door):
-                            map += "-D-"
-                    else:
-                        map += "   "
-                    if self.map_system.map.coordinates[(x,y)].south.next_room != None:
-                        previous_line.append(x)
-                else:
-                    map += "    "
-            map += '\n'
-            for x in range(min_x, max_x + 1):
-                if x in previous_line:
-                    obstacle = self.map_system.map.coordinates[(x,y)].south.obstacle
-                    if obstacle == None:
-                        map += "|   "
-                    elif isinstance(obstacle, Door):
-                        map += "D   "
-                else:
-                    map += "    "
-            previous_line.clear()
-            map += "\n"
-        return map
-    
-    def show_map(self):
-        print(self.draw_map())
 
-    def start_game(self):
-        print('---START---')
-        while True:
-            self.show_map()
-            player_action = input()
-            player_action = player_action.lower()
-            if "exit" in player_action:
-                break
-            self.handle_turn(player_action)
+        for y in range(max_y, min_y - 1, -1):
+            line1 = ""
+            line2 = ""
+            for x in range(min_x, max_x + 1):
+                if (x, y) in self.map_system.map.coordinates:
+                    room = self.map_system.map.coordinates[(x, y)]
+                    
+                    if room == self.character_system.player.current_room:
+                        line1 += "𓀠"
+                    else:
+                        line1 += "▇"
+                    
+                    # East path
+                    if hasattr(room, 'east') and room.east and room.east.next_room:
+                        if isinstance(room.east.obstacle, Door):
+                            line1 += "-D-"
+                        else:
+                            line1 += "---"
+                    else:
+                        line1 += "   "
+                        
+                    # South path
+                    if hasattr(room, 'south') and room.south and room.south.next_room:
+                        if isinstance(room.south.obstacle, Door):
+                            line2 += "D   "
+                        else:
+                            line2 += "|   "
+                    else:
+                        line2 += "    "
+                else:
+                    line1 += "    "
+                    line2 += "    "
             
+            map_str += line1 + "\n"
+            map_str += line2 + "\n"
+            
+        return map_str
+
